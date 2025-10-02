@@ -424,14 +424,14 @@ def move_mouse_hardware(x, y):
     print(f"[*] Moving mouse to ({x}, {y})")
     user32.SetCursorPos(x, y)
 
-def PressKey(hexKeyCode):
+def press_key(hex_key_code):
     x = INPUT(type=INPUT_KEYBOARD,
-              ki=KEYBDINPUT(wVk=hexKeyCode))
+              ki=KEYBDINPUT(wVk=hex_key_code))
     user32.SendInput(1, ctypes.byref(x), ctypes.sizeof(x))
 
-def ReleaseKey(hexKeyCode):
+def release_key(hex_key_code):
     x = INPUT(type=INPUT_KEYBOARD,
-              ki=KEYBDINPUT(wVk=hexKeyCode, dwFlags=KEYEVENTF_KEYUP))
+              ki=KEYBDINPUT(wVk=hex_key_code, dwFlags=KEYEVENTF_KEYUP))
     user32.SendInput(1, ctypes.byref(x), ctypes.sizeof(x))
 
 def load_json(filename):
@@ -614,19 +614,19 @@ def send_chat_command(command, keymap):
 
     # Open chat
     enter_vk = int(keymap["VK_RETURN"], 16)
-    PressKey(enter_vk); time.sleep(0.05); ReleaseKey(enter_vk)
+    press_key(enter_vk); time.sleep(0.05); release_key(enter_vk)
     time.sleep(0.2)
 
     # Paste
     ctrl = int(keymap["VK_LCONTROL"], 16)
     vkey = int(keymap["V"], 16)
-    PressKey(ctrl); time.sleep(0.05)
-    PressKey(vkey); time.sleep(0.05)
-    ReleaseKey(vkey); time.sleep(0.05)
-    ReleaseKey(ctrl); time.sleep(0.2)
+    press_key(ctrl); time.sleep(0.05)
+    press_key(vkey); time.sleep(0.05)
+    release_key(vkey); time.sleep(0.05)
+    release_key(ctrl); time.sleep(0.2)
 
     # Send
-    PressKey(enter_vk); time.sleep(0.05); ReleaseKey(enter_vk)
+    press_key(enter_vk); time.sleep(0.05); release_key(enter_vk)
     time.sleep(0.1)
 
 def execute_command_sequence(macro_array, keymap, command_text=None):
@@ -654,14 +654,14 @@ def execute_command_sequence(macro_array, keymap, command_text=None):
             key_name = macro_array[i+1]
             vk = int(keymap[key_name], 16)
             print(f"[*] Pressing {key_name}")
-            PressKey(vk)
+            press_key(vk)
             i += 2
 
         elif cmd == "release":
             key_name = macro_array[i+1]
             vk = int(keymap[key_name], 16)
             print(f"[*] Releasing {key_name}")
-            ReleaseKey(vk)
+            release_key(vk)
             i += 2
             
         elif cmd == "wait":
