@@ -1,4 +1,5 @@
 [
 	{ "quest": "594_coming_to_uldah", "source": "shared" },
-	{ "quest": "568_close_to_home", "source": "class" }
+	{ "quest": "568_close_to_home", "source": "class" },
+	{ "quest": "253_way_of_the_gladiator", "source": "class" }
 ]

@@ -18,7 +18,9 @@
 		{ "interaction_type": ["close_tutorial"] }
 	],
 	"3": [
-		{ "comment": "Walk to Steps of Thal border" },
+		{ "comment": "Adventurers' Guild Aethernet Shard then walk to Steps of Thal border" },
+		{ "map": "uldah", "location": "adventurers_guild_as" },
+		{ "interaction_type": ["attune_aethernet_shard"] },
 		{ "vnav": ["95.433 4 -105.263", -1, 10] }
 	],
 	"4": [
@@ -51,5 +53,35 @@
 	"9": [
 		{ "map": "uldah", "location": "gladiators_guild_as" },
 		{ "interaction_type": ["attune_aethernet_shard"] }
+	],
+	"10": [
+		{ "map": "uldah", "location": "chamber_of_rule_as" },
+		{ "interaction_type": ["attune_aethernet_shard"] }
+	],
+	"11": [
+		{ "map": "uldah", "location": "alchemists_guild_as" },
+		{ "interaction_type": ["attune_aethernet_shard"] }
+	],
+	"12": [
+		{ "interaction_type": ["use_aethernet_shard", {"name": "Gladiators' Guild"}] }
+	],
+	"13": [
+		{ "comment": "Walk to Steps of Nald border" },
+		{ "vnav": ["-112.643 7.734 9.960", -1, 10] }
+	],
+	"14": [
+		{ "map": "uldah", "location": "thaumaturges_guild_as" },
+		{ "interaction_type": ["attune_aethernet_shard"] }
+	],
+	"15": [
+		{ "interaction_type": ["use_aethernet_shard", {"name": "Gladiators' Guild"}] },
+		{ "map": "uldah", "location": "gladiators_guild_tp" }
+	],
+	"16": [
+		{ "goto": [253, 1] }
+	],
+	"17": [
+		{ "map": "uldah", "location": "adventurers_guild_as" },
+		{ "interaction_type": ["use_aethernet_shard", {"name": "Adventurers' Guild"}] }
 	]
 }

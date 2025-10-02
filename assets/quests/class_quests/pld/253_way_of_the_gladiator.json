@@ -1,0 +1,12 @@
+{
+	"1": [
+		{ "map": "uldah", "npc": "lulutsu" },
+		{ "interaction_type": ["npc_interact"] },
+		{ "interaction_type": ["interact_yes", {"name": "Lulutsu"}] }
+	],
+	"2": [
+		{ "map": "uldah", "npc": "mylla" },
+		{ "interaction_type": ["interact_yes", {"name": "Mylla"}] },
+		{ "destination": ["-94.602 6.500 38.299", 16000, 5] }
+	]
+}

@@ -170,7 +170,7 @@ def _debug_ocr_success(lang, psm, payload):
     non_empty = sum(1 for token in payload.get("text", []) if token and token.strip())
     print(f"[dbg][ocr] used lang='{lang}' psm={psm} tokens={non_empty}")
 
-def _ocr_image_to_data(img, region=None, timeout_sec=None):
+def _ocr_image_to_data(img, timeout_sec=None):
     psms = [6, 3, 11, 13]
     langs = ['eng+ffxiv', 'eng']
     timeout = timeout_sec if timeout_sec is not None else TESSERACT_TIMEOUT_SEC
@@ -282,6 +282,18 @@ def _locate_fuzzy_ocr_match(lines, target_norm_line, threshold):
         return best_ratio, best_center, best_text
     return None
 
+def _best_fuzzy_ratio(lines, target_norm_line):
+    best_ratio = 0.0
+    for info in lines:
+        norm_tokens = info.get('norm_tokens') or []
+        if not norm_tokens:
+            continue
+        span = _best_span_for_target(norm_tokens, target_norm_line, max_extra=2)
+        if span:
+            best_ratio = max(best_ratio, span[2])
+    return best_ratio
+
+
 def _handle_ocr_miss(results, region, target_text, target_norm_line):
     try:
         _dump_ocr_debug(results, region, target_norm_line)
@@ -313,7 +325,7 @@ def perform_ocr_and_find_text(target_text, region=None):
     print(f"[*] Performing OCR looking for: '{target_text}'")
     screenshot = ImageGrab.grab(bbox=region)
 
-    results, _lang, _psm = _ocr_image_to_data(screenshot, region=region, timeout_sec=TESSERACT_TIMEOUT_SEC)
+    results, _lang, _psm = _ocr_image_to_data(screenshot, timeout_sec=TESSERACT_TIMEOUT_SEC)
     target_words, target_norm_line = _normalize_target_text(target_text)
     lines = _group_ocr_lines(results, region)
 
@@ -381,58 +393,26 @@ def _normalize_chat_text(s: str) -> str:
 
 def perform_ocr_find_text_fuzzy(target_text: str, region=None, threshold: float = 0.90,
                                 ocr_timeout_sec: float | None = None) -> bool:
-    """
-    Fuzzy search across the whole region. On success, centers on the matched token-span.
-    """
+    """Fuzzy search across the region; centers on the matched token span when successful."""
     global last_ocr_match_center, last_detection_type
 
-    target_norm = _normalize_chat_text(target_text)  # your existing normalizer is fine
+    target_norm = _normalize_chat_text(target_text)
     print(f"[*] Performing FUZZY OCR looking for (~{int(threshold*100)}%): '{target_norm}'")
 
     screenshot = ImageGrab.grab(bbox=region)
-    results, _lang, _psm = _ocr_image_to_data(
-        screenshot, region=region, timeout_sec=(ocr_timeout_sec if ocr_timeout_sec is not None else TESSERACT_TIMEOUT_SEC)
-    )
+    timeout = ocr_timeout_sec if ocr_timeout_sec is not None else TESSERACT_TIMEOUT_SEC
+    results, _lang, _psm = _ocr_image_to_data(screenshot, timeout_sec=timeout)
+    lines = _group_ocr_lines(results, region)
 
-    # Group per visual line
-    lines = {}
-    for i, txt in enumerate(results["text"]):
-        if not txt or not txt.strip():
-            continue
-        key = (results["block_num"][i], results["par_num"][i], results["line_num"][i])
-        lines.setdefault(key, {"tokens": [], "boxes": []})
-        lines[key]["tokens"].append(txt)
-        x, y, w, h = results["left"][i], results["top"][i], results["width"][i], results["height"][i]
-        lines[key]["boxes"].append((x, y, w, h))
-
-    best_ratio, best_center, best_text = 0.0, None, None
-    for info in lines.values():
-        # reuse the generic normalizer (punctuation-trimmed, lower)
-        norm_tokens = [_norm_token_generic(t) for t in info["tokens"] if _norm_token_generic(t)]
-        if not norm_tokens: continue
-        span = _best_span_for_target(norm_tokens, target_norm, max_extra=2)
-        if not span: continue
-        i0, i1, ratio = span
-        # containment OR similarity
-        chunk = " ".join(norm_tokens[i0:i1+1])
-        if (target_norm in chunk) or (ratio >= threshold):
-            xs = [info["boxes"][k][0] for k in range(i0, i1 + 1)]
-            ys = [info["boxes"][k][1] for k in range(i0, i1 + 1)]
-            xe = [info["boxes"][k][0] + info["boxes"][k][2] for k in range(i0, i1 + 1)]
-            ye = [info["boxes"][k][1] + info["boxes"][k][3] for k in range(i0, i1 + 1)]
-            x0, y0, x1, y1 = min(xs), min(ys), max(xe), max(ye)
-            cx, cy = (x0 + x1) // 2, (y0 + y1) // 2
-            if region: cx += region[0]; cy += region[1]
-            if ratio > best_ratio:
-                best_ratio, best_center, best_text = ratio, (cx, cy), chunk
-
-    if best_center is not None:
-        last_ocr_match_center = best_center
+    match = _locate_fuzzy_ocr_match(lines, target_norm, threshold)
+    if match:
+        ratio, center, matched_text = match
+        last_ocr_match_center = center
         last_detection_type = "ocr"
-        print(f"[*] Fuzzy match {best_ratio:.1%} for '{target_norm}' → '{best_text}' at {best_center}")
+        print(f"[*] Fuzzy match {ratio:.1%} for '{target_norm}' ~ '{matched_text}' at {center}")
         return True
 
-    # Miss: dump lines
+    best_ratio = _best_fuzzy_ratio(lines, target_norm)
     try:
         _dump_ocr_debug(results, region, target_norm)
     except Exception:
@@ -1868,20 +1848,33 @@ while True:
                 print("[!] goto: unsupported format.")
                 continue
 
-            # Resolve target path via registry helper first, then by key
+            # Resolve target path via registry helper first, then by key, then by numeric-id scan
             if not target_path and target_key:
                 try:
                     # resolve_quest_target(key) → (full_path, quest_key)
                     res = resolve_quest_target(target_key)
                     if isinstance(res, tuple) and len(res) >= 1:
                         target_path = res[0]
-                        # prefer normalized quest key if provided
                         if len(res) >= 2 and res[1]:
                             target_key = res[1]
                 except Exception:
                     target_path = None
+
                 if not target_path:
                     target_path = resolve_file_path(f"{target_key}.json") or resolve_file_path(target_key)
+
+                # NEW: numeric id fallback (e.g., 253 → 253_way_of_the_gladiator.json)
+                if not target_path and str(target_key).isdigit():
+                    _load_asset_indices()
+                    kid = str(target_key)
+                    # Match exact "<id>.json" or "<id>_*"
+                    matches = [k for k in ASSET_FILE_INDEX.keys()
+                            if k == f"{kid}.json" or k.startswith(f"{kid}_")]
+                    if matches:
+                        chosen = sorted(matches)[0]  # deterministic pick
+                        target_path = _assets_fullpath(ASSET_FILE_INDEX[chosen])
+                        target_key = os.path.splitext(os.path.basename(chosen))[0].lower()
+                        print(f"[*] goto: id {kid} → {target_key} → {target_path}")
 
             if not target_path:
                 print(f"[!] GOTO target not found: {goto_val!r}")
