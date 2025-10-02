@@ -629,58 +629,111 @@ def send_chat_command(command, keymap):
     press_key(enter_vk); time.sleep(0.05); release_key(enter_vk)
     time.sleep(0.1)
 
+def _macro_arg(macro_array, index, offset, cmd):
+    try:
+        return macro_array[index + offset]
+    except IndexError:
+        print(f"[!] Macro '{cmd}' expects more arguments (index {index})")
+        return None
+
+def _handle_mouse_button(action, button_id):
+    btn, down_flag, up_flag = mouse_buttons[button_id]
+    flag = down_flag if action == 'press' else up_flag
+    print(f"[*] {'Pressing' if action == 'press' else 'Releasing'} {btn} mouse button")
+    extra = 0
+    if 'XBUTTON' in button_id:
+        extra = 1 if btn == 'x1' else 2
+    user32.mouse_event(flag, 0, 0, 0, extra)
+
+def _handle_virtual_key(action, key_name, keymap):
+    try:
+        raw_code = keymap[key_name]
+    except KeyError:
+        print(f"[!] Unknown key name: {key_name}")
+        return
+    try:
+        key_code = int(raw_code, 16)
+    except (TypeError, ValueError):
+        print(f"[!] Invalid key code for {key_name}: {raw_code}")
+        return
+    print(f"[*] {'Pressing' if action == 'press' else 'Releasing'} {key_name}")
+    if action == 'press':
+        press_key(key_code)
+    else:
+        release_key(key_code)
+
+def _sleep_ms(duration_ms):
+    try:
+        time.sleep(float(duration_ms) / 1000.0)
+    except (TypeError, ValueError):
+        print(f"[!] Invalid wait value: {duration_ms}")
+
+def _handle_press_release(action, macro_array, index, keymap):
+    target = _macro_arg(macro_array, index, 1, action)
+    if target is None:
+        return len(macro_array)
+    if target in mouse_buttons:
+        _handle_mouse_button(action, target)
+    else:
+        _handle_virtual_key(action, target, keymap)
+    return index + 2
+
+def _handle_press(macro_array, index, keymap):
+    return _handle_press_release('press', macro_array, index, keymap)
+
+def _handle_release(macro_array, index, keymap):
+    return _handle_press_release('release', macro_array, index, keymap)
+
+def _handle_wait(macro_array, index, keymap):
+    duration = _macro_arg(macro_array, index, 1, 'wait')
+    if duration is None:
+        return len(macro_array)
+    print(f"[*] Wait: {duration}ms")
+    _sleep_ms(duration)
+    return index + 2
+
+def _handle_rand(macro_array, index, keymap):
+    low = _macro_arg(macro_array, index, 1, 'rand')
+    high = _macro_arg(macro_array, index, 2, 'rand')
+    if low is None or high is None:
+        return len(macro_array)
+    try:
+        low_i = int(low)
+        high_i = int(high)
+    except (TypeError, ValueError):
+        print(f"[!] Invalid rand bounds: {low}, {high}")
+        return index + 3
+    if low_i > high_i:
+        low_i, high_i = high_i, low_i
+    delay = random.randint(low_i, high_i)
+    print(f"[*] Random wait: {delay}ms")
+    _sleep_ms(delay)
+    return index + 3
+
+_MACRO_HANDLERS = {
+    'press': _handle_press,
+    'release': _handle_release,
+    'wait': _handle_wait,
+    'rand': _handle_rand,
+}
+
 def execute_command_sequence(macro_array, keymap, command_text=None):
-    i = 0
-    while i < len(macro_array):
-        cmd = macro_array[i]
-
-        if cmd in ("press", "release") and macro_array[i+1] in mouse_buttons:
-            btn, down_flag, up_flag = mouse_buttons[macro_array[i+1]]
-            if cmd == "press":
-                print(f"[*] Pressing {btn} mouse button")
-                if "XBUTTON" in macro_array[i+1]:
-                    user32.mouse_event(down_flag, 0, 0, 0, 1 if btn == "x1" else 2)
-                else:
-                    user32.mouse_event(down_flag, 0, 0, 0, 0)
-            else:
-                print(f"[*] Releasing {btn} mouse button")
-                if "XBUTTON" in macro_array[i+1]:
-                    user32.mouse_event(up_flag, 0, 0, 0, 1 if btn == "x1" else 2)
-                else:
-                    user32.mouse_event(up_flag, 0, 0, 0, 0)
-            i += 2
-
-        elif cmd == "press":
-            key_name = macro_array[i+1]
-            vk = int(keymap[key_name], 16)
-            print(f"[*] Pressing {key_name}")
-            press_key(vk)
-            i += 2
-
-        elif cmd == "release":
-            key_name = macro_array[i+1]
-            vk = int(keymap[key_name], 16)
-            print(f"[*] Releasing {key_name}")
-            release_key(vk)
-            i += 2
-            
-        elif cmd == "wait":
-            duration = macro_array[i+1]
-            print(f"[*] Wait: {duration}ms")
-            time.sleep(duration / 1000)
-            i += 2
-
-        elif cmd == "rand":
-            low = int(macro_array[i+1])
-            high = int(macro_array[i+2])
-            delay = random.randint(low, high)
-            print(f"[*] Random wait: {delay}ms")
-            time.sleep(delay / 1000)
-            i += 3
-
-        else:
+    _ = command_text  # preserved for compatibility
+    index = 0
+    length = len(macro_array)
+    while index < length:
+        cmd = macro_array[index]
+        handler = _MACRO_HANDLERS.get(cmd)
+        if handler is None:
             print(f"[!] Unknown macro command: {cmd}")
-            i += 1
+            index += 1
+            continue
+        next_index = handler(macro_array, index, keymap)
+        if next_index <= index:
+            index += 1
+        else:
+            index = next_index
+    return
 
 def is_macro_step(step):
     return isinstance(step, dict) and any(k in step for k in ("press", "release", "wait", "rand", "paste"))
