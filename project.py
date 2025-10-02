@@ -232,6 +232,68 @@ def _fuzzy_span_for_target(tokens_norm, target_norm, target_words, max_extra, ma
             best_span = (start, end - 1, ratio)
     return best_span
 
+def _normalize_target_text(target_text):
+    words = [_norm_token_generic(part) for part in target_text.strip().split()]
+    words = [w for w in words if w]
+    return words, " ".join(words)
+
+def _span_center_from_boxes(boxes, start, end):
+    xs = [boxes[i][0] for i in range(start, end + 1)]
+    ys = [boxes[i][1] for i in range(start, end + 1)]
+    xe = [boxes[i][0] + boxes[i][2] for i in range(start, end + 1)]
+    ye = [boxes[i][1] + boxes[i][3] for i in range(start, end + 1)]
+    x0, y0, x1, y1 = min(xs), min(ys), max(xe), max(ye)
+    return ((x0 + x1) // 2, (y0 + y1) // 2)
+
+def _locate_exact_ocr_match(lines, target_words):
+    if not target_words:
+        return None
+    span_len = len(target_words)
+    for info in lines:
+        norm_tokens = info.get('norm_tokens') or []
+        if len(norm_tokens) < span_len:
+            continue
+        for start in range(len(norm_tokens) - span_len + 1):
+            if norm_tokens[start:start + span_len] == target_words:
+                center = _span_center_from_boxes(info['boxes'], start, start + span_len - 1)
+                return center
+    return None
+
+def _locate_fuzzy_ocr_match(lines, target_norm_line, threshold):
+    if not target_norm_line:
+        return None
+    best_ratio, best_center, best_text = 0.0, None, None
+    for info in lines:
+        norm_tokens = info.get('norm_tokens') or []
+        if not norm_tokens:
+            continue
+        span = _best_span_for_target(norm_tokens, target_norm_line, max_extra=2)
+        if not span:
+            continue
+        start, end, ratio = span
+        chunk_norm = " ".join(norm_tokens[start:end + 1])
+        if ratio < threshold and target_norm_line not in chunk_norm:
+            continue
+        if ratio >= best_ratio:
+            center = _span_center_from_boxes(info['boxes'], start, end)
+            matched_text = " ".join(norm_tokens[start:end + 1])
+            best_ratio, best_center, best_text = ratio, center, matched_text
+    if best_center is not None:
+        return best_ratio, best_center, best_text
+    return None
+
+def _handle_ocr_miss(results, region, target_text, target_norm_line):
+    try:
+        _dump_ocr_debug(results, region, target_norm_line)
+        lines_dbg = _group_ocr_lines(results, region)
+        if lines_dbg:
+            preview = " | ".join(ln['raw'] for ln in lines_dbg[:3])
+            print(f"[dbg][ocr] preview: {preview}")
+    except Exception:
+        pass
+    print(f"[!] Text '{target_text}' not found on screen.")
+    return False
+
 # --- pick the best token-span inside a line for a target (exact or fuzzy) ---
 def _best_span_for_target(tokens_norm, target_norm, max_extra=2):
     import difflib as _dl
@@ -252,85 +314,27 @@ def perform_ocr_and_find_text(target_text, region=None):
     screenshot = ImageGrab.grab(bbox=region)
 
     results, _lang, _psm = _ocr_image_to_data(screenshot, region=region, timeout_sec=TESSERACT_TIMEOUT_SEC)
+    target_words, target_norm_line = _normalize_target_text(target_text)
+    lines = _group_ocr_lines(results, region)
 
-    # helpers
-    def _norm_token(s: str) -> str:
-        s = (s or "").lower()
-        s = s.replace("’", "'").replace("‘", "'")
-        s = re.sub(r"^[^\w]+|[^\w]+$", "", s)
-        return s
-    def _line_norm(tokens): return [t for t in (_norm_token(x) for x in tokens) if t]
+    exact_center = _locate_exact_ocr_match(lines, target_words)
+    if exact_center:
+        last_ocr_match_center = exact_center
+        last_detection_type = "ocr"
+        print(f"[*] Found '{target_text}' at {exact_center} [exact]")
+        return True
 
-    target_words = _line_norm(target_text.strip().split())
-    target_norm_line = " ".join(target_words)
-
-    # Group by visual line
-    lines = {}
-    for i, txt in enumerate(results["text"]):
-        if not txt or not txt.strip():
-            continue
-        key = (results["block_num"][i], results["par_num"][i], results["line_num"][i])
-        lines.setdefault(key, {"tokens": [], "boxes": []})
-        lines[key]["tokens"].append(txt)
-        x, y, w, h = results["left"][i], results["top"][i], results["width"][i], results["height"][i]
-        lines[key]["boxes"].append((x, y, w, h))
-
-    # 1) Exact consecutive token match
-    if target_words:
-        for info in lines.values():
-            norm_tokens = _line_norm(info["tokens"])
-            n = len(target_words)
-            for i0 in range(0, len(norm_tokens) - n + 1):
-                if all(norm_tokens[i0 + j] == target_words[j] for j in range(n)):
-                    # center of matched span
-                    xs = [info["boxes"][i0 + k][0] for k in range(n)]
-                    ys = [info["boxes"][i0 + k][1] for k in range(n)]
-                    xe = [info["boxes"][i0 + k][0] + info["boxes"][i0 + k][2] for k in range(n)]
-                    ye = [info["boxes"][i0 + k][1] + info["boxes"][i0 + k][3] for k in range(n)]
-                    x0, y0, x1, y1 = min(xs), min(ys), max(xe), max(ye)
-                    cx, cy = (x0 + x1) // 2, (y0 + y1) // 2
-                    if region: cx += region[0]; cy += region[1]
-                    last_ocr_match_center = (cx, cy)
-                    last_detection_type = "ocr"
-                    print(f"[*] Found '{target_text}' at ({cx}, {cy}) [exact]")
-                    return True
-
-    # 2) Fuzzy/containment fallback (90% default; substring accepted)
+    fuzzy_hit = None
     if OCR_FUZZY_ENABLED and target_norm_line:
-        best = (0.0, None, None)  # ratio, (cx,cy), dbg_text
-        for info in lines.values():
-            norm_tokens = _line_norm(info["tokens"])
-            span = _best_span_for_target(norm_tokens, target_norm_line, max_extra=2)
-            if not span: continue
-            i0, i1, ratio = span
-            # accept containment OR ratio ≥ threshold
-            accept = (ratio >= OCR_FUZZY_THRESHOLD) or (" ".join(norm_tokens[i0:i1+1]).find(target_norm_line) >= 0)
-            if accept and ratio >= best[0]:
-                xs = [info["boxes"][k][0] for k in range(i0, i1 + 1)]
-                ys = [info["boxes"][k][1] for k in range(i0, i1 + 1)]
-                xe = [info["boxes"][k][0] + info["boxes"][k][2] for k in range(i0, i1 + 1)]
-                ye = [info["boxes"][k][1] + info["boxes"][k][3] for k in range(i0, i1 + 1)]
-                x0, y0, x1, y1 = min(xs), min(ys), max(xe), max(ye)
-                cx, cy = (x0 + x1) // 2, (y0 + y1) // 2
-                if region: cx += region[0]; cy += region[1]
-                best = (ratio, (cx, cy), " ".join(norm_tokens[i0:i1+1]))
-        if best[1] is not None:
-            last_ocr_match_center = best[1]
-            last_detection_type = "ocr"
-            print(f"[*] Fuzzy matched '{target_text}' ≈ '{best[2]}' ({best[0]*100:.1f}%) at {best[1]}")
-            return True
+        fuzzy_hit = _locate_fuzzy_ocr_match(lines, target_norm_line, OCR_FUZZY_THRESHOLD)
+    if fuzzy_hit:
+        ratio, center, matched_text = fuzzy_hit
+        last_ocr_match_center = center
+        last_detection_type = "ocr"
+        print(f"[*] Fuzzy matched '{target_text}' ~ '{matched_text}' ({ratio*100:.1f}%) at {center}")
+        return True
 
-    # Miss: dump what we saw
-    try:
-        _dump_ocr_debug(results, region, target_norm_line)
-        lines_dbg = _group_ocr_lines(results, region)
-        if lines_dbg:
-            preview = " | ".join(ln["raw"] for ln in lines_dbg[:3])
-            print(f"[dbg][ocr] preview: {preview}")
-    except Exception:
-        pass
-    print(f"[!] Text '{target_text}' not found on screen.")
-    return False
+    return _handle_ocr_miss(results, region, target_text, target_norm_line)
 
 def perform_img_search(template_path, threshold=0.8):
     global last_img_match_center, last_detection_type
@@ -1301,11 +1305,11 @@ def await_battle_defeat(monster_name: str, keymap,
 def _norm_token_generic(s: str) -> str:
     s = (s or "").lower()
     s = s.replace("’", "'").replace("‘", "'")
-    s = re.sub(r"^[^\w]+|[^\w]+$", "", s)  # trim punctuation at ends
+    s = re.sub(r"(?:^[^\w]+)|(?:[^\w]+$)", "", s)  # trim punctuation at ends
     return s
 
 def _group_ocr_lines(results, region=None):
-    """Group Tesseract tokens into visual lines; return [{raw,norm,bbox,center}, ...]."""
+    """Group OCR tokens into visual lines; include raw/norm text, boxes, centers, and token lists."""
     lines = {}
     for i, txt in enumerate(results["text"]):
         if not txt or not txt.strip():
@@ -1314,21 +1318,31 @@ def _group_ocr_lines(results, region=None):
         lines.setdefault(key, {"texts": [], "boxes": []})
         lines[key]["texts"].append(txt)
         x, y, w, h = results["left"][i], results["top"][i], results["width"][i], results["height"][i]
+        if region:
+            x += region[0]; y += region[1]
         lines[key]["boxes"].append((x, y, w, h))
 
     out = []
     for info in lines.values():
-        tokens = info["texts"]
+        tokens = list(info["texts"])
+        norm_tokens = [_norm_token_generic(t) for t in tokens]
+        norm_tokens = [t for t in norm_tokens if t]
         raw = " ".join(tokens).strip()
-        norm = " ".join(_norm_token_generic(t) for t in tokens if _norm_token_generic(t))
+        norm = " ".join(norm_tokens)
         xs = [b[0] for b in info["boxes"]]; ys = [b[1] for b in info["boxes"]]
         xe = [b[0] + b[2] for b in info["boxes"]]; ye = [b[1] + b[3] for b in info["boxes"]]
         x0, y0, x1, y1 = min(xs), min(ys), max(xe), max(ye)
         cx, cy = (x0 + x1) // 2, (y0 + y1) // 2
-        if region:
-            cx += region[0]; cy += region[1]
-            x0 += region[0]; x1 += region[0]; y0 += region[1]; y1 += region[1]
-        out.append({"raw": raw, "norm": norm, "bbox": (x0, y0, x1, y1), "center": (cx, cy)})
+        entry = {
+            "raw": raw,
+            "norm": norm,
+            "bbox": (x0, y0, x1, y1),
+            "center": (cx, cy),
+            "tokens": tokens,
+            "boxes": info["boxes"],
+            "norm_tokens": norm_tokens
+        }
+        out.append(entry)
     return out
 
 def _dump_ocr_debug(results, region=None, target=None):
