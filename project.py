@@ -131,76 +131,119 @@ class INPUT(ctypes.Structure):
 LPINPUT = ctypes.POINTER(INPUT)
 
 # --- OCR engine with fallbacks (multi-line friendly) ---
-def _ocr_image_to_data(img, region=None, timeout_sec=None):
-    # Multi-line first; also try sparse text modes in case of tricky UI fonts
-    psms = [6, 3, 11, 13]  # 6=block, 3=auto, 11/13=sparse
-    langs = ["eng+ffxiv", "eng"]
-
-    last_exc = None
+def _iter_ocr_configs(langs, psms):
     for lang in langs:
         for psm in psms:
-            try:
-                res = pytesseract.image_to_data(
-                    img,
-                    output_type=pytesseract.Output.DICT,
-                    config=f"--psm {psm}",
-                    timeout=(timeout_sec if timeout_sec is not None else TESSERACT_TIMEOUT_SEC),
-                    lang=lang
-                )
-                if any((t or "").strip() for t in res.get("text", [])):
-                    if OCR_DEBUG_DUMP:
-                        non_empty = sum(1 for t in res["text"] if t and t.strip())
-                        print(f"[dbg][ocr] used lang='{lang}' psm={psm} tokens={non_empty}")
-                    return res, lang, psm
-            except Exception as e:
-                last_exc = e
-                continue
+            yield lang, psm
+
+def _try_ocr_image(img, lang, psm, timeout):
+    try:
+        result = pytesseract.image_to_data(
+            img,
+            output_type=pytesseract.Output.DICT,
+            config=f"--psm {psm}",
+            timeout=timeout,
+            lang=lang
+        )
+        return result, None
+    except Exception as exc:
+        return None, exc
+
+def _ocr_has_tokens(payload):
+    return any((token or "").strip() for token in payload.get("text", []))
+
+def _empty_ocr_payload():
+    return {
+        "text": [],
+        "left": [],
+        "top": [],
+        "width": [],
+        "height": [],
+        "block_num": [],
+        "par_num": [],
+        "line_num": []
+    }
+
+def _debug_ocr_success(lang, psm, payload):
+    if not OCR_DEBUG_DUMP:
+        return
+    non_empty = sum(1 for token in payload.get("text", []) if token and token.strip())
+    print(f"[dbg][ocr] used lang='{lang}' psm={psm} tokens={non_empty}")
+
+def _ocr_image_to_data(img, region=None, timeout_sec=None):
+    psms = [6, 3, 11, 13]
+    langs = ['eng+ffxiv', 'eng']
+    timeout = timeout_sec if timeout_sec is not None else TESSERACT_TIMEOUT_SEC
+
+    last_exc = None
+    for lang, psm in _iter_ocr_configs(langs, psms):
+        payload, err = _try_ocr_image(img, lang, psm, timeout)
+        if err is not None:
+            last_exc = err
+            continue
+        if not _ocr_has_tokens(payload):
+            continue
+        _debug_ocr_success(lang, psm, payload)
+        return payload, lang, psm
 
     if last_exc:
         print(f"[dbg][ocr] OCR attempts failed; last error: {last_exc}")
 
-    return {"text": [], "left": [], "top": [], "width": [], "height": [],
-            "block_num": [], "par_num": [], "line_num": []}, None, None
+    return _empty_ocr_payload(), None, None
+
+# --- token span search helpers ---
+def _split_target_words(target_norm):
+    return [word for word in target_norm.split() if word]
+
+def _span_length_range(token_count, target_len, max_extra):
+    if token_count <= 0 or target_len <= 0:
+        return range(0)
+    min_len = max(1, target_len - max_extra)
+    max_len = min(token_count, target_len + max_extra)
+    return range(min_len, max_len + 1)
+
+def _iter_candidate_chunks(tokens_norm, lengths):
+    token_count = len(tokens_norm)
+    for window_len in lengths:
+        limit = token_count - window_len + 1
+        if limit <= 0:
+            continue
+        for start in range(limit):
+            end = start + window_len
+            yield start, end, " ".join(tokens_norm[start:end])
+
+def _exact_span_for_target(tokens_norm, target_norm, target_words, max_extra):
+    if target_norm not in " ".join(tokens_norm):
+        return None
+    default_span = (0, len(tokens_norm) - 1, 1.0)
+    lengths = _span_length_range(len(tokens_norm), len(target_words), max_extra)
+    for start, end, chunk in _iter_candidate_chunks(tokens_norm, lengths):
+        if target_norm in chunk:
+            return (start, end - 1, 1.0)
+    return default_span
+
+def _fuzzy_span_for_target(tokens_norm, target_norm, target_words, max_extra, matcher_factory):
+    best_ratio, best_span = 0.0, None
+    lengths = _span_length_range(len(tokens_norm), len(target_words), max_extra)
+    for start, end, chunk in _iter_candidate_chunks(tokens_norm, lengths):
+        ratio = matcher_factory(None, chunk, target_norm).ratio()
+        if ratio > best_ratio:
+            best_ratio = ratio
+            best_span = (start, end - 1, ratio)
+    return best_span
 
 # --- pick the best token-span inside a line for a target (exact or fuzzy) ---
 def _best_span_for_target(tokens_norm, target_norm, max_extra=2):
     import difflib as _dl
-    if not tokens_norm:
+    if not tokens_norm or not target_norm:
         return None
-    # Quick win: if exact containment by words
-    line_text = " ".join(tokens_norm)
-    if target_norm and target_norm in line_text:
-        # choose the shortest window that still contains target_norm
-        best = (0, len(tokens_norm)-1, 1.0)
-        # brute-force small windows around the target length
-        tgt_words = [w for w in target_norm.split() if w]
-        L = len(tokens_norm)
-        min_len = max(1, len(tgt_words) - max_extra)
-        max_len = min(L, len(tgt_words) + max_extra)
-        for wlen in range(min_len, max_len + 1):
-            for i in range(0, L - wlen + 1):
-                chunk = " ".join(tokens_norm[i:i+wlen])
-                if target_norm in chunk:
-                    return (i, i + wlen - 1, 1.0)
-        return best
-
-    # Otherwise: sliding-window fuzzy search around target length
-    tgt_words = [w for w in target_norm.split() if w]
-    if not tgt_words:
+    target_words = _split_target_words(target_norm)
+    if not target_words:
         return None
-    L = len(tokens_norm)
-    min_len = max(1, len(tgt_words) - max_extra)
-    max_len = min(L, len(tgt_words) + max_extra)
-    best_ratio, best_span = 0.0, None
-    for wlen in range(min_len, max_len + 1):
-        for i in range(0, L - wlen + 1):
-            chunk = " ".join(tokens_norm[i:i+wlen])
-            r = _dl.SequenceMatcher(None, chunk, target_norm).ratio()
-            if r > best_ratio:
-                best_ratio, best_span = r, (i, i + wlen - 1)
-    if best_span:
-        return (best_span[0], best_span[1], best_ratio)
-    return None
+    exact = _exact_span_for_target(tokens_norm, target_norm, target_words, max_extra)
+    if exact:
+        return exact
+    return _fuzzy_span_for_target(tokens_norm, target_norm, target_words, max_extra, _dl.SequenceMatcher)
 
 def perform_ocr_and_find_text(target_text, region=None):
     global last_ocr_match_center, last_detection_type
