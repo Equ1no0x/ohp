@@ -1,0 +1,88 @@
+{
+	"uldah": {
+		"wymond": { "vnav": ["34.821 4 -151.605"] },
+		"momodi": { "vnav": ["21.857 7 -81.278"] },
+		"seseroga": { "vnav": ["137.339 4 -43.184", 15000, 5] },
+		"lulutsu": { "vnav": ["-95.869 6.599 25.666"] },
+		"mylla": { "vnav": ["-94.602 6.500 38.299"] },
+		"chocobokeep": { "vnav": ["55.926 4 -142.162"] },
+		"sultansworn_elite": { "vnav": ["-122.467 40 94.849"] },
+		"serendipity": { "vnav": ["-24.982 12.200 109.305"] },
+		"bartholomew": { "vnav": ["-23.720 38.000 83.868"] },
+		"raubahn": { "vnav": ["-137.850 4.099 -112.077"] }
+	},
+	"uldah_airship_landing": {
+		"elyenora": { "vnav": ["-22.565 83.199 -4.104"] }
+	},
+	"thanalan_heart_of_the_sword": {
+		"owyne": { "vnav": ["0.943 0.014 -0.072"] },
+		"papashan": { "vnav": ["-0.021 0.014 -0.913"] }
+	},
+	"central_thanalan": {
+		"papashan": { "vnav": ["74.618 2.135 317.716"] },
+		"lilira": { "vnav": ["201.493 14.136 534.902"] },
+		"cicidoa": { "vnav": ["80.647 0.931 312.502"] },
+		"gagari": { "vnav": ["58.163 0.938 256.493"] },
+		"roger": { "vnav": ["-96.843 -11.35 -41.898"] },
+		"warin": { "vnav": ["-30.621 -1.024 -148.496"] },
+		"zuzumeda": { "vnav": ["-35.103 -2.058 -154.399"] },
+		"wystan": { "vnav": ["-94.251 -11.350 -44.757"] },
+		"seseli": { "vnav": ["-256.826 -0.283 26.477"] },
+		"leofric": { "vnav": ["93.326 0.340 -271.629"] }
+	},
+	"central_thanalan_black_brush": {
+		"independent_armorer": { "vnav": ["-12.179 -2.048 -145.678"] },
+		"chocobokeep": { "vnav": ["-3.994 -2.054 -158.060"] }
+	},
+	"western_thanalan": {
+		"nervous_merchant": { "vnav": ["202.040 52.038 147.992"] },
+		"drunken_stag": { "vnav": ["239.527 58.357 -161.353"] },
+		"fufulupa": { "vnav": ["60.870 45.157 -215.076"] },
+		"totoruna": { "vnav": ["-175.499 15.652 -270.639"] },
+		"nunuzofu": { "vnav": ["-177.592 15.632 -270.11"] },
+		"raffe": { "vnav": [ "-174.734 15.450 -266.761","-289.109 15.249 -209.018", "-283.529 13.480 -146.085" ] },
+		"merilda": { "vnav": ["-323.422 17.583 -128.231"] },
+		"baldewyn": { "vnav": ["-237.343 16.136 -293.490"] }
+	},
+	"western_thanalan_silver_bazaar": {
+		"chocobokeep": { "vnav": ["-244.568 32.436 384.091"] }
+	},
+	"western_thanalan_horizon": {
+		"chocobokeep": { "vnav": ["63.915 45.143 -194.943"] },
+		"dadanen": { "vnav": ["62.475 45.142 -204.779"] }
+	},
+	"western_thanalan_vespers_bay": {
+		"chocobokeep": { "vnav": ["-415.389 23.008 -337.086"] }
+	},
+	"estern_thanalan": {
+		"nervous_merchant": { "vnav": ["202.040 52.038 147.992"] }
+	},
+	"estern_thanalan_camp_drybone": {
+		"chocobokeep": { "vnav": ["-422.486 -39.138 113.449"] }
+	},
+	"limsa_lower_decks": {
+		"zanthael": { "vnav": ["9.388 20.999 -13.658"] }
+	},
+	"limsa_upper_decks": {
+		"baderon": { "vnav": ["18.008 40.216 -5.510"] }
+	},
+	"limsa_airship_landing": {
+		"arrivals_attendant": { "vnav": ["-14.059 91.499 -1.175", 25000, 5] },
+		"storm_honor_guard": { "vnav": ["-7.440 91.499 -12.478"] },
+		"blanmhas": { "vnav": ["-7.363 91.499 -15.072"] },
+		"l'nophlo": { "vnav": ["-24.160 91.999 -2.840"] }
+	},
+	"new_gridania": {
+		"lionnellais": { "vnav": ["29.060 -19.000 103.460"] }
+	},
+	"old_gridania": {
+		"silent_conjurer": { "vnav": ["-158.795 4.024 -5.332"] },
+		"serpent_officer": { "vnav": ["-157.555 4.039 -3.555"] }
+	},
+	"gridania_airship_landing": {
+		"arrivals_attendant": { "vnav": ["30.034 -19.000 116.187", 25000, 5] },
+		"serpent_honor_guard": { "vnav": ["36.559 -18.800 91.226"] },
+		"blanmhas": { "vnav": ["-7.363 91.499 -15.072"] },
+		"l'nophlo": { "vnav": ["-24.160 91.999 -2.840"] }
+	}
+}

@@ -1,0 +1,69 @@
+{
+	"confirm":[
+		"rand", 222, 333,
+		"press", "VK_NUMPAD0",
+		"rand", 56, 156,
+		"release", "VK_NUMPAD0",
+		"rand", 222, 333		
+	],
+	"change_stance":[
+		"rand", 222, 333,
+		"press", "Z",
+		"rand", 56, 156,
+		"release", "Z",
+		"rand", 222, 333		
+	],
+	"escape":[
+		"rand", 222, 333,
+		"press", "VK_ESCAPE",
+		"rand", 56, 156,
+		"release", "VK_ESCAPE",
+		"rand", 222, 333		
+	],
+	"target_swap":[
+		"rand", 222, 333,
+		"press", "VK_TAB",
+		"rand", 56, 156,
+		"release", "VK_TAB",
+		"rand", 222, 333
+	],
+	"open_char":[
+		"rand", 222, 333,
+		"press", "C",
+		"rand", 56, 156,
+		"release", "C",
+		"rand", 222, 333
+	],
+	"short_lclick":[
+		"rand", 222, 333,
+		"press", "VK_LBUTTON",
+		"rand", 56, 156,
+		"release", "VK_LBUTTON",
+		"rand", 222, 333		
+	],
+	"single_rclick":[
+		"rand", 222, 333,
+		"press", "VK_RBUTTON",
+		"rand", 56, 156,
+		"release", "VK_RBUTTON",
+		"rand", 222, 333		
+	],
+	"double_lclick":[
+		"rand", 222, 333,
+		"press", "VK_LBUTTON",
+		"rand", 56, 156,
+		"release", "VK_LBUTTON",
+		"rand", 256, 356,
+		"press", "VK_LBUTTON",
+		"rand", 56, 156,
+		"release", "VK_LBUTTON",
+		"rand", 222, 333		
+	],
+	"obj_check_right":[
+		"rand", 222, 333,
+		"press", "VK_NUMPAD6",
+		"rand", 56, 156,
+		"release", "VK_NUMPAD6",
+		"rand", 222, 333		
+	]
+}

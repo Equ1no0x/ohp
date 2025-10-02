@@ -1,0 +1,36 @@
+{
+	"1": [
+		{ "map": "old_gridania", "npc": "serpent_officer" },
+		{ "interaction_type": ["npc_interact", {"name": "Serpent Officer"}] }
+	],
+	"1": [
+		{ "interaction_type": ["tp", {"name": "Limsa Lominsa"}] }
+	],
+	"2": [
+		{ "map": "old_gridania", "location": "conjurers_guild" },
+		{ "interaction_type": ["use_aethernet_shard", {"name": "Aetheryte Plaza"}] }
+	],
+	"3": [
+		{ "map": "new_gridania", "location": "gridania_aetheryte_tp" }
+	],
+	"4": [
+		{ "map": "new_gridania", "npc": "lionnellais" }
+	],
+	"5": [
+		{ "interaction_type": ["npc_interact", {"name": "Lionnellais"}] },
+		{ "interaction_type": ["quest_select", {"region": "815, 490, 1120, 560"}, {"name": "Limsa"}] }
+	],
+	"6": [
+		{ "map": "limsa_airship_landing", "location": "after_gate" },
+		{ "map": "limsa_airship_landing", "npc": "blanmhas" },
+		{ "interaction_type": ["airship_landing_area_select", {"npc": "Blanmhas"}, {"option": "Drowning Wench"}, {"region": "815, 490, 1120, 560"}] }
+	],
+	"7": [
+		{ "map": "limsa_upper_decks", "location": "upper_decks_from_airship" },
+		{ "map": "limsa_upper_decks", "npc": "baderon" },
+		{ "interaction_type": ["npc_interact", {"name": "Baderon"}] }
+	],
+	"8": [
+		{ "goto": ["assets/msq/seventh_umbral_era/shared/245_its_probably_pirates.json", 1] }
+	]
+}

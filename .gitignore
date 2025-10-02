@@ -2,6 +2,7 @@
 documentation/
 testing/
 version_history/
+modules/logwatch.py
 
 # Certain file types
 *.ipynb

@@ -1,0 +1,36 @@
+{
+	"1": [
+		{ "map": "uldah", "npc": "momodi" },
+		{ "interaction_type": ["npc_interact", {"name": "Momodi"}] }
+	],
+	"2": [
+		{ "interaction_type": ["change_gear_piece", {"cords": [637, 485]}, {"name": "qitem_voice_of_the_just_icon.png"}] }
+	],
+	"3": [
+		{ "map": "uldah", "location": "adventurers_guild_as" },
+		{ "interaction_type": ["use_aethernet_shard", {"name": "The Chamber of Rule"}] }
+	],
+	"4": [
+		{ "map": "uldah", "location": "chamber_of_rule_tp" },
+		{ "map": "uldah", "npc": "bartholomew" },
+		{ "interaction_type": ["npc_interact", {"name": "Bartholomew"}] }
+	],
+	"5": [
+		{ "map": "thanalan_the_hourglass", "location": "exit" },
+		{ "interaction_type": ["interact_yes", {"name": "Heavy Oaken Door"}] }
+	],
+	"6": [
+		{ "map": "uldah", "location": "chamber_of_rule_as" },
+		{ "interaction_type": ["use_aethernet_shard", {"name": "Ul'dah Aetheryte Plaza"}] }
+	],
+	"7": [
+		{ "map": "uldah", "location": "uldah_aetheryte_tp" }
+	],
+	"8": [
+		{ "map": "uldah", "npc": "raubahn" },
+		{ "interaction_type": ["npc_interact", {"name": "Raubahn"}] }
+	],
+	"9": [
+		{ "goto": ["assets/msq/seventh_umbral_era/uldah/528_the_uldahn_envoy.json", 1] }
+	]
+}

@@ -1,0 +1,96 @@
+{
+	"1": [
+		{ "comment": "Right after character creation. This still has to be done by hand." },
+		{ "rand": [45000, 46000]},
+		{ "img_search": "assets/map_uldah_from_creation.png" },
+		{ "await": [2000, "img", true, "", 90000] }
+	],
+	"2": [
+		{ "img_search": "assets/mkb.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [2000, 3000]}
+	],
+	"3": [
+		{ "img_search": "assets/quest_no.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" }
+	],
+	"4": [
+		{
+			"map": "uldah",
+			"npc": "wymond"
+		},
+		{ "rand": [3000, 4000]}
+	],
+	"5": [
+		{ "ocr": "Wymond" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [9000, 10000]}
+	],
+	"6": [
+		{ "img_search": "assets/help_exit.png" },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" }
+	],
+	"7": [
+		{ "ocr": "Accept" },
+		{ "region": "841, 496, 887, 514" },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" }
+	],
+	"8": [
+		{ "img_search": "assets/help_exit.png" },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" }
+	],
+	"9": [
+		{
+			"map": "uldah",
+			"npc": "momodi"
+		}
+	],
+	"10": [
+		{ "rand": [14000, 15000]},
+		{ "ocr": "Momodi" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [4000, 5000] }
+	],
+	"11": [
+		{ "img_search": "assets/help_exit.png" },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [222, 333]}
+	],
+	"12": [
+		{ "rand": [14000, 15000]},
+		{ "ocr": "Momodi" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" }
+	],
+	"13": [
+		{ "ocr": "Close to Home" },
+		{ "region": "80, 75, 330, 98" },
+		{ "await": [1000, "ocr", true, "", 60000] },
+		{ "rand": [222, 333]}
+	],
+	"14": [
+		{ "goto": ["uldah_quest_chain.json", 2] }
+	]
+}

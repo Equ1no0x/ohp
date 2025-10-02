@@ -1,0 +1,64 @@
+{
+	"1": [
+		{ "interaction_type": ["npc_interact", {"name": "Momodi"}] }
+	],
+	"2": [
+		{ "goto": ["assets/hlogs/gladiator/262_the_old_familiar_feeling.json", 1] }
+	],
+	"3": [
+		{ "map": "uldah", "location": "gladiators_guild_as" },
+		{ "interaction_type": ["aethernet_shard", {"name": "Alchemists' Guild"}] }
+	],
+	"4": [
+		{ "map": "uldah", "npc": "sultansworn_elite" },
+		{ "interaction_type": ["interact_yes", {"name": "Sultansworn Elite"}] }
+	],
+	"5": [
+		{ "map": "thanalan_heart_of_the_sword", "npc": "owyne" },
+		{ "interaction_type": ["npc_interact", {"name": "Owyne"}] }
+	],
+	"6": [
+		{ "map": "thanalan_heart_of_the_sword", "location": "exit" },
+		{ "interaction_type": ["interact_yes", {"name": "Exit"}] }
+	],
+	"7": [
+		{ "map": "uldah", "location": "alchemists_guild_as" },
+		{ "interaction_type": ["use_aethernet_shard", {"name": "Adventurers' Guild"}] }
+	],
+	"8": [
+		{ "interaction_type": ["verify_tp", {"name": "assets/adventurers_guild_as_tp.png"}] }
+	],
+	"9": [
+		{ "map": "uldah", "npc": "chocobokeep" },
+		{ "interaction_type": ["npc_interact", {"name": "Mimigun"}] },
+		{ "interaction_type": ["rent_hire", {"name": "chocobo_black_brush_station.png"}] },
+		{ "map": "central_thanalan_black_brush", "location": "chocobo_hire_end" }
+	],
+	"10": [
+		{ "vnav": ["245.449 -17.105 -131.679"] },
+		{ "interaction_type": ["sp_duty", {"name": "Destination"}] }
+	],
+	"11": 
+	[
+		{ "interaction_type": ["sec_duty"] },
+		{ "destination": ["245.292 -16.883 -131.708"] }
+	],
+	"12": [
+		{ "goto": ["assets/hlogs/gladiator/262_the_old_familiar_feeling.json", 4] }
+	],
+	"13": [
+		{ "map": "uldah", "location": "gladiators_guild_as" },
+		{ "interaction_type": ["use_aethernet_shard", {"name": "Alchemists' Guild"}] }
+	],
+	"14": [
+		{ "map": "uldah", "npc": "sultansworn_elite" },
+		{ "interaction_type": ["interact_yes", {"name": "Sultansworn Elite"}] }
+	],
+	"15": [
+		{ "map": "thanalan_heart_of_the_sword", "npc": "papashan" },
+		{ "interaction_type": ["npc_interact", {"name": "Papashan"}] }
+	],
+	"16": [
+		{ "goto": ["assets/msq/seventh_umbral_era/uldah/641_a_matter_of_tradition.json", 1] }
+	]
+}

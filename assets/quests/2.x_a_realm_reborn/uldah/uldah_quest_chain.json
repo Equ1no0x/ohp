@@ -1,0 +1,1319 @@
+{
+	"1": [
+		{ "goto": ["uldah_start.json", 1] }
+	],
+	"2": [
+		{ "ocr": "Close to Home" },
+		{ "region": "80, 75, 330, 98" },
+		{ "await": [1000, "ocr", true, "", 60000] },
+		{ "rand": [222, 333]}
+	],
+	"3": [
+		{ "map": "uldah", "location": "adventurers_guild_as" },
+		{ "rand": [12000, 13000]},
+		{ "ocr": "Aethernet Shard" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [6000, 7000] }
+	],
+	"4": [
+		{ "rand": [2000, 3000]},
+		{ "map": "uldah", "location": "steps_of_thal_1" }
+	],
+	"5": [
+		{ "rand": [8000, 9000]},
+		{ "map": "uldah", "npc": "seseroga"	}
+	],
+	"6": [
+		{ "rand": [11000, 12000]},
+		{ "ocr": "Seseroga" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [6000, 7000] }
+	],
+	"7": [
+		{ "map": "uldah", "location": "sapphire_avenue_exchange_as" },
+		{ "rand": [1400, 15000]},
+		{ "ocr": "Aethernet Shard" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [6000, 7000] }
+	],
+	"8": [
+		{ "map": "uldah", "location": "weavers_guild_as" },
+		{ "rand": [13000, 14000]},
+		{ "ocr": "Aethernet Shard" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [6000, 7000] }
+	],
+	"9": [
+		{ "map": "uldah", "location": "miners_guild_as" },
+		{ "rand": [13000, 14000]},
+		{ "ocr": "Aethernet Shard" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [6000, 7000] }
+	],
+	"10": [
+		{ "map": "uldah", "location": "goldsmiths_guild_as" },
+		{ "rand": [13000, 14000]},
+		{ "ocr": "Aethernet Shard" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [6000, 7000] }
+	],
+	"11": [
+		{ "map": "uldah", "location": "gladiators_guild_as" },
+		{ "rand": [12000, 13000]},
+		{ "ocr": "Aethernet Shard" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [6000, 7000] }
+	],
+	"12": [
+		{ "map": "uldah", "location": "chamber_of_rule_as" },
+		{ "rand": [26000, 27000]},
+		{ "ocr": "Aethernet Shard" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [6000, 7000] }
+	],
+	"13": [
+		{ "map": "uldah", "location": "alchemists_guild_as" },
+		{ "rand": [26000, 27000]},
+		{ "ocr": "Aethernet Shard" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [6000, 7000] }
+	],
+	"14": [
+		{ "command": "confirm" },
+		{ "command": "confirm" },
+		{ "rand": [222, 333]},
+		{ "img_search": "assets/uldah_adventurers_guild.png" },
+		{ "await": [1000, "img", true, "", 5000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "double_lclick" },
+		{ "rand": [5000, 6000] }
+	],
+	"15": [
+		{ "map": "uldah", "location": "uldah_aetheryte" },
+		{ "rand": [31000, 32000]},
+		{ "ocr": "Aetheryte" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [12500, 13500]}
+	],
+	"16": [
+		{ "map": "uldah", "location": "thaumaturges_guild_as" },
+		{ "rand": [41000, 42000]},
+		{ "ocr": "Aethernet Shard" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [16000, 17000]}
+	],
+	"17": [
+		{ "goto": ["gladiator.json", 2] }
+	],
+	"18": [
+		{ "map": "uldah", "location": "gladiators_guild_as" },
+		{ "rand": [12000, 13000]},
+		{ "ocr": "Aethernet Shard" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 5000] },
+		{ "rand": [222, 333]},
+		{ "command": "confirm" },
+		{ "command": "confirm" },
+		{ "img_search": "assets/uldah_adventurers_guild.png" },
+		{ "await": [1000, "img", true, "", 5000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "double_lclick" },
+		{ "rand": [5000, 6000] }
+	],
+	"19": [
+		{ "map": "uldah", "npc": "momodi" },
+		{ "rand": [13000, 14000]},
+		{ "ocr": "Momodi" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [5000, 6000] }
+	],
+	"20": [
+		{ "goto": ["gladiator.json", 8] }
+	],
+	"21": [
+		{ "ocr": "We Must Rebuild" },
+		{ "region": "80, 75, 330, 98" },
+		{ "await": [1000, "ocr", true, "", 60000] },
+		{ "rand": [222, 333]}
+	],
+	"22": [
+		{
+			"map": "uldah",
+			"npc": "momodi"
+		}
+	],
+	"23": [
+		{ "rand": [13000, 14000]},
+		{ "ocr": "Momodi" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "command": "confirm" }
+	],
+	"24" :[
+		{ "goto": ["gladiator.json", 23] }
+	],
+	"25": [
+		{ "map": "uldah", "location": "gladiators_guild_as" },
+		{ "rand": [12000, 13000]},
+		{ "ocr": "Aethernet Shard" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 5000] },
+		{ "rand": [222, 333]},
+		{ "command": "confirm" },
+		{ "command": "confirm" },
+		{ "rand": [222, 333]},
+		{ "img_search": "assets/uldah_gate_of_nald.png" },
+		{ "await": [1000, "img", true, "", 5000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "double_lclick" },
+		{ "rand": [5000, 6000] }
+	],
+	"26": [
+		{ "img_search": "assets/map_central_thanalan_from_gate_of_nald_tp.png" },
+		{ "await": [1000, "img", true, "", 5000] }
+	],
+	"27": [
+		{ "goto": ["gladiator_hunting_log.json", 1] }
+	],
+	"28": [
+		{
+			"map": "central_thanalan",
+			"npc": "papashan"
+		}
+	],
+	"29": [
+		{ "rand": [29000, 30000]},
+		{ "ocr": "Papashan" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "command": "confirm" }
+	],
+	"30": [
+		{ "rand": [1500, 2500]},
+		{ "ocr": "Papashan" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "command": "confirm" }
+	],
+	"31": [
+		{ "goto": ["gladiator_hunting_log.json", 3] }
+	],
+	"32": [
+		{ "command": "/vnav moveto 126.929 14.652 276.383" },
+		{ "rand": [16000, 17000] },
+		{ "ocr": "Sultansworn" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 5000] },
+		{ "command": "confirm" },
+		{ "command": "confirm" },
+		{ "rand": [1500, 2500] }
+	],
+	"32": [
+		{ "command": "/vnav moveto 90.991 4.635 423.416" },
+		{ "rand": [31000, 32000] },
+		{ "ocr": "Sultansworn" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 5000] },
+		{ "command": "confirm" },
+		{ "command": "confirm" },
+		{ "rand": [1500, 2500] }
+	],
+	"33": [
+		{ "command": "/vnav moveto -60.843 4.642 262.951" },
+		{ "rand": [34000, 35000] },
+		{ "ocr": "Sultansworn" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 5000] },
+		{ "command": "confirm" },
+		{ "command": "confirm" },
+		{ "rand": [1500, 2500] }
+	],
+	"34": [
+		{
+			"map": "central_thanalan",
+			"npc": "papashan"
+		},
+		{ "rand": [34000, 35000]}
+	],
+	"35": [
+		{ "ocr": "Papashan" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "command": "confirm" }
+	],
+	"36": [
+		{ "rand": [1500, 2500]},
+		{ "ocr": "Papashan" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "command": "confirm" }
+	],
+	"37": [
+		{
+			"map": "central_thanalan",
+			"npc": "lilira"
+		},
+		{ "rand": [42000, 43000]}
+	],
+	"38" :[
+		{ "command": "/vnav moveto 200.116 14.218 537.598" },
+		{ "rand": [4000, 5000] },
+		{ "ocr": "Hooded Lalafell" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 5000] },
+		{ "command": "confirm" },
+		{ "command": "confirm" }
+	],
+	"39": [
+		{ "rand": [222, 333]},
+		{ "img_search": "assets/quest_proceed.png" },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" }
+	],
+	"40": [
+		{ "img_search": "assets/map_central_thanalan_quest_underneath_the_sultantree.png" },
+		{ "await": [1000, "img", true, "", 5000] },
+		{ "command": "/rotation Auto" },
+		{ "rand": [156, 226]},
+		{ "command": "/bmrai on" },
+		{ "rand": [156, 226]},
+		{ "command": "target_swap" },
+		{ "rand": [156, 226]},
+		{ "command": "/vnav movetarget" },
+		{ "rand": [60000, 80000]},
+		{ "ocr": "ALL" },
+		{ "region": "706, 815, 790, 830" },
+		{ "await": [1000, "ocr", true, "", 5000] },
+		{ "rand": [8000, 9000]}
+	],
+	"41": [
+		{
+			"map": "central_thanalan",
+			"npc": "papashan"
+		},
+		{ "rand": [42000, 43000]}
+	],
+	"42": [
+		{ "ocr": "Papashan" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "command": "confirm" }
+	],
+	"43": [
+		{
+			"map": "central_thanalan",
+			"npc": "cicidoa"
+		},
+		{ "rand": [4000, 5000]}
+	],
+	"44": [
+		{ "ocr": "Cicidoa" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "command": "confirm" }
+	],
+	"45": [
+		{
+			"map": "central_thanalan",
+			"npc": "gagari"
+		},
+		{ "rand": [9000, 10000]}
+	],
+	"46": [
+		{ "ocr": "Gagari" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "command": "confirm" },
+		{ "rand": [1500, 2500]}
+	],
+	"47": [
+		{
+			"map": "central_thanalan",
+			"npc": "roger"
+		},
+		{ "rand": [49000, 50000]}
+	],
+	"48": [
+		{ "ocr": "Roger" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "command": "confirm" },
+		{ "rand": [1500, 2500]}
+	],
+	"49": [
+		{ "ocr": "Roger" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "command": "confirm" },
+		{ "rand": [1500, 2500]}
+	],
+	"50": [
+		{
+			"map": "central_thanalan",
+			"npc": "warin"
+		},
+		{ "rand": [23000, 24000]}
+	],
+	"51": [
+		{ "ocr": "Warin" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "command": "confirm" },
+		{ "rand": [1500, 2500]}
+	],
+	"52": [
+		{
+			"map": "central_thanalan_black_brush",
+			"npc": "independent_armorer"
+		},
+		{ "rand": [5000, 6000]}
+	],
+	"53": [
+		{ "ocr": "Independent" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [1500, 2500]}
+	],
+	"54": [
+		{ "img_search": "assets/shop_purchase_battle_gear.png" },
+		{ "rand": [56, 126]},
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [222, 333]}
+	],
+	"55": [
+		{ "img_search": "assets/qitem_leather_eyepatch.png" },
+		{ "rand": [56, 126]},
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [222, 333]}
+	],
+	"56": [
+		{ "img_search": "assets/quest_ok.png" },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [222, 333]}
+	],
+	"57": [
+		{ "img_search": "assets/shop_exit.png" },
+		{ "rand": [56, 126]},
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [222, 333]}
+	],
+	"58": [
+		{ "command": "open_char" },
+		{ "mouse_move": [404, 441] },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [222, 333]},
+		{ "img_search": "assets/qitem_leather_eyepatch_icon.png" },
+		{ "rand": [56, 126]},
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [222, 333]},
+		{ "mouse_move": [404, 441] },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [222, 333]},
+		{ "command": "open_char" },
+		{ "rand": [1500, 2500]}
+	],
+	"59": [
+		{
+			"map": "central_thanalan",
+			"npc": "warin"
+		},
+		{ "rand": [5000, 6000]}
+	],
+	"60": [
+		{ "ocr": "Warin" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [1500, 2500]}
+	],
+	"61": [
+		{ "ocr": "Warin" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [1500, 2500]}
+	],
+	"62": [
+		{
+			"map": "central_thanalan",
+			"location": "black_brush_aetheryte"
+		},
+		{ "rand": [4000, 5000]}
+	],
+	"63": [
+		{ "command": "confirm" },
+		{ "command": "confirm" },
+		{ "rand": [1500, 2500]}
+	],
+	"64": [
+		{ "goto": ["gladiator_hunting_log.json", 5] }
+	],
+	"65": [
+		{ "command": "/vnav moveto 25.264 13 49.324" },
+		{ "rand": [25000, 26000]}
+	],
+	"66": [
+		{ "ocr": "Narrow Fissure" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [222, 333]},
+		{ "img_search": "assets/qitem_silver_ore_cluster_icon.png" },
+		{ "rand": [56, 126]},
+		{ "await": [1000, "img", true, "", 60000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "single_rclick" },
+		{ "rand": [222, 333]},
+		{ "img_search": "assets/item_use.png" },
+		{ "rand": [56, 126]},
+		{ "await": [1000, "img", true, "", 60000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [6000, 7000]}
+	],
+	"67": [
+		{ "command": "/rotation Auto" },
+		{ "rand": [156, 226]},
+		{ "command": "/bmrai on" },
+		{ "rand": [156, 226]},
+		{ "command": "target_swap" },
+		{ "rand": [156, 226]},
+		{ "command": "/vnav movetarget" },
+		{ "rand": [17000, 18000]}
+	],
+	"68": [
+		{ "goto": ["gladiator_hunting_log.json", 7] }
+	],
+	"69": [
+		{
+			"map": "central_thanalan",
+			"npc": "warin"
+		},
+		{ "rand": [35000, 36000]}
+	],
+	"70": [
+		{ "ocr": "Warin" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [1500, 2500]}
+	],
+	"71": [
+		{
+			"map": "central_thanalan",
+			"npc": "zuzumeda"
+		},
+		{ "rand": [4000, 5000]}
+	],
+	"72": [
+		{ "ocr": "Zuzumeda" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [1500, 2500]}
+	],
+	"73": [
+		{ "img_search": "assets/quest_accept.png" },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [1500, 2500]}
+	],
+	"74": [
+		{
+			"map": "central_thanalan",
+			"npc": "wystan"
+		},
+		{ "rand": [18000, 19000]}
+	],
+	"75": [
+		{ "ocr": "Wystan" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [1500, 2500]}
+	],
+	"76" :[
+		{ "command": "/vnav moveto -79.086 -12.817 -33.484" },
+		{ "rand": [4000, 5000] },
+		{ "ocr": "Child" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 5000] },
+		{ "command": "confirm" },
+		{ "rand": [3000, 4000] }
+	],
+	"77" :[
+		{ "command": "/vnav moveto -79.450 -12.829 -33.941" },
+		{ "rand": [4000, 5000] },
+		{ "ocr": "Child" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 5000] },
+		{ "command": "confirm" },
+		{ "rand": [3000, 4000] }
+	],
+	"78" :[
+		{ "command": "/vnav moveto -79.493 -12.838 -38.621" },
+		{ "rand": [4000, 5000] },
+		{ "ocr": "Child" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 5000] },
+		{ "command": "confirm" },
+		{ "rand": [3000, 4000] }
+	],
+	"79" :[
+		{ "command": "/vnav moveto -82.693 -11.350 -37.628" },
+		{ "rand": [4000, 5000] },
+		{ "ocr": "Child" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 5000] },
+		{ "command": "confirm" },
+		{ "rand": [3000, 4000] }
+	],
+	"80": [
+		{
+			"map": "central_thanalan",
+			"npc": "wystan"
+		},
+		{ "rand": [4000, 5000]}
+	],
+	"81": [
+		{ "ocr": "Wystan" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [1500, 2500]}
+	],
+	"82": [
+		{ "goto": ["gladiator_hunting_log.json", 9] }
+	],
+	"83" :[
+		{ "command": "/vnav moveto -227.592 -31.608 115.776" },
+		{ "rand": [9000, 10000] },
+		{ "ocr": "Wystan" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 5000] },
+		{ "command": "confirm" }
+	],
+	"84": [
+		{ "rand": [1500, 2500]},
+		{ "img_search": "assets/quest_proceed.png" },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [9000, 10000] }
+	],
+	"85": [
+		{ "command": "/rotation Auto" },
+		{ "rand": [156, 226]},
+		{ "command": "/bmrai on" },
+		{ "rand": [156, 226]},
+		{ "command": "target_swap" },
+		{ "rand": [156, 226]},
+		{ "command": "/vnav movetarget" },
+		{ "rand": [41000, 42000]}
+	],
+	"86": [
+		{ "img_search": "assets/map_uldah_from_gate_of_nald.png" },
+		{ "await": [1000, "img", false, "", 5000] },
+		{ "command": "/rotation off" },
+		{ "rand": [156, 226]},
+		{ "command": "/bmrai off" },
+		{ "rand": [156, 226]}
+	],
+	"87": [
+		{
+			"map": "central_thanalan",
+			"npc": "wystan"
+		},
+		{ "img_search": "assets/class_gla_gauge_unlocked.png" },
+		{ "await": [1000, "img", true, "", 5000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [222, 333]},
+		{ "img_search": "assets/shop_exit.png" },
+		{ "await": [1000, "img", true, "", 5000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [222, 333]},
+		{ "rand": [41000, 42000]}
+	],
+	"88": [
+		{ "ocr": "Wystan" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [4000, 5000]}
+	],
+	"89": [
+		{
+			"map": "central_thanalan_black_brush",
+			"npc": "chocobokeep"
+		},
+		{ "rand": [41000, 42000]}
+	],
+	"90": [
+		{ "ocr": "Chocobokeep" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [4000, 5000]}
+	],
+	"91": [
+		{ "command": "escape" }
+	],
+	"92": [
+		{ "goto": ["gladiator.json", 30] }
+	],
+	"93": [
+		{
+			"map": "western_thanalan_silver_bazaar",
+			"npc": "chocobokeep"
+		},
+		{ "rand": [62000, 63000]}
+	],
+	"94": [
+		{ "ocr": "Chocobokeep" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [4000, 5000]},
+		{ "command": "escape" }
+	],
+	"95": [
+		{ "goto": ["gladiator_hunting_log.json", 13] }
+	],
+	"96": [
+		{
+			"map": "western_thanalan",
+			"npc": "horizon_aetheryte"
+		},
+		{ "rand": [45000, 46000]}
+	],
+	"97": [
+		{ "ocr": "Aetheryte" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [5000, 6000]}
+	],
+	"98": [
+		{
+			"map": "western_thanalan_horizon",
+			"npc": "chocobokeep"
+		},
+		{ "rand": [5000, 6000]}
+	],
+	"99": [
+		{ "ocr": "Chocobokeep" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [4000, 5000]},
+		{ "command": "escape" }
+	],
+	"100": [
+		{
+			"map": "western_thanalan_vespers_bay",
+			"npc": "chocobokeep"
+		},
+		{ "rand": [61000, 62000]}
+	],
+	"101": [
+		{ "ocr": "Chocobokeep" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [4000, 5000]},
+		{ "command": "escape" }
+	],
+	"102": [
+		{ "command": "/return" },
+		{ "rand": [222, 333]},
+		{ "img_search": "assets/quest_yes.png" },
+		{ "rand": [56, 126]},
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [11000, 12000]}
+	],
+	"103": [
+		{ "command": "/vnav moveto -142.024 -3.154 -172.621" },
+		{ "rand": [222, 333]},
+		{ "ocr": "Aetheryte" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 90000] },
+		{ "command": "confirm" },
+		{ "rand": [1000, 2000]},
+		{ "img_search": "assets/aetheryte_aethernet.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [1000, 2000]},
+		{ "img_search": "assets/uldah_adventurers_guild.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "rand": [56, 126]},
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "double_lclick" },
+		{ "rand": [5000, 6000]}
+	],
+	"104": [
+		{ "map": "uldah", "npc": "momodi" },
+		{ "rand": [13000, 14000]},
+		{ "ocr": "Momodi" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [30000, 31000] }
+	],
+	"105": [
+		{ "ocr": "Momodi" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [4000, 5000] }
+	],
+	"106": [
+		{ "goto": ["gladiator.json", 42] }
+	],
+	"107": [
+		{
+			"map": "uldah",
+			"npc": "chocobokeep"
+		},
+		{ "rand": [5000, 6000]}
+	],
+	"108": [
+		{ "ocr": "Mimigun" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [4000, 5000]}
+	],
+	"109": [
+		{ "img_search": "assets/chocobo_porter.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [222, 333]},
+		{ "img_search": "assets/chocobo_hire.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "img_search": "assets/chocobo_horizon.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "img_search": "assets/quest_yes.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [90000, 91000]}
+	],
+	"110": [
+		{
+			"map": "western_thanalan_horizon",
+			"npc": "dadanen"
+		},
+		{ "rand": [4000, 5000]}
+	],
+	"111": [
+		{ "ocr": "Dadanen" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [6000, 7000]}
+	],
+	"112": [
+		{ "ocr": "Dadanen" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [4000, 5000]}
+	],
+	"113": [
+		{
+			"map": "western_thanalan",
+			"npc": "drunken_stag"
+		},
+		{ "rand": [29000, 30000]},
+		{ "ocr": "Drunken Stag" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [6000, 7000]}
+	],
+	"114": [
+		{ "ocr": "Drunken Stag" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [4000, 5000]}
+	],
+	"115": [
+		{ "command": "/vnav moveto 296.734 62.355 -192.856" },
+		{ "rand": [8000, 9000]},
+		{ "ocr": "Ore Mound" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [3000, 4000]},
+		{ "command": "/rotation Auto" },
+		{ "rand": [156, 226]},
+		{ "command": "/bmrai on" },
+		{ "rand": [1500, 2500]},
+		{ "ocr": "Prism Coblyn" },
+		{ "region": "783, 30, 1180, 48" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [1500, 2500]},
+		{ "await": [2000, "ocr", false, "VK_NUMPAD0", 120000] },
+		{ "command": "/rotation off" },
+		{ "rand": [156, 226]},
+		{ "command": "/bmrai off" },
+		{ "command": "change_stance" },
+		{ "rand": [156, 226]}
+	],
+	"116": [
+		{ "command": "/vnav moveto 317.070 63.019 -200.371" },
+		{ "rand": [3000, 4000]},
+		{ "ocr": "Ore Mound" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [3000, 4000]},
+		{ "command": "/rotation Auto" },
+		{ "rand": [156, 226]},
+		{ "command": "/bmrai on" },
+		{ "rand": [1500, 2500]},
+		{ "ocr": "Prism Coblyn" },
+		{ "region": "783, 30, 1180, 48" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [1500, 2500]},
+		{ "await": [2000, "ocr", false, "VK_NUMPAD0", 120000] },
+		{ "command": "/rotation off" },
+		{ "rand": [156, 226]},
+		{ "command": "/bmrai off" },
+		{ "command": "change_stance" },
+		{ "rand": [156, 226]}
+	],
+	"117": [
+		{ "command": "/vnav moveto 293.853 63.462 -234.917" },
+		{ "rand": [5000, 6000]},
+		{ "ocr": "Ore Mound" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [3000, 4000]},
+		{ "command": "/rotation Auto" },
+		{ "rand": [156, 226]},
+		{ "command": "/bmrai on" },
+		{ "rand": [1500, 2500]},
+		{ "ocr": "Prism Coblyn" },
+		{ "region": "783, 30, 1180, 48" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [1500, 2500]},
+		{ "await": [2000, "ocr", false, "VK_NUMPAD0", 120000] },
+		{ "command": "/rotation off" },
+		{ "rand": [156, 226]},
+		{ "command": "/bmrai off" },
+		{ "command": "change_stance" },
+		{ "rand": [156, 226]}
+	],
+	"118": [
+		{
+			"map": "western_thanalan",
+			"npc": "drunken_stag"
+		},
+		{ "rand": [17000, 18000]},
+		{ "ocr": "Drunken Stag" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [6000, 7000]}
+	],
+	"119": [
+		{ "ocr": "Drunken Stag" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [6000, 7000]}
+	],
+	"120": [
+		{ "command": "/vnav moveto 174.368 49.626 -140.481" },
+		{ "rand": [12000, 13000]},
+		{
+			"combat": {
+				"region": "750, 31, 1190, 52",
+				"names": ["Sun Midge Swarm"],
+				"counts": [1],
+				"end_command": "/vnav moveto 174.368 49.626 -140.481"
+			}
+		},
+		{ "command": "/vnav moveto 174.368 49.626 -140.481" },
+		{ "rand": [12000, 13000]},
+		{
+			"combat": {
+				"region": "750, 31, 1190, 52",
+				"names": ["Sun Midge Swarm"],
+				"counts": [1],
+				"end_command": "/vnav moveto 174.368 49.626 -140.481"
+			}
+		},
+		{ "command": "/vnav moveto 174.368 49.626 -140.481" },
+		{ "rand": [12000, 13000]},
+		{
+			"combat": {
+				"region": "750, 31, 1190, 52",
+				"names": ["Sun Midge Swarm"],
+				"counts": [1],
+				"end_command": "/vnav moveto 174.368 49.626 -140.481"
+			}
+		}
+	],
+	"121": [
+		{
+			"map": "western_thanalan",
+			"npc": "fufulupa"
+		},
+		{ "rand": [25000, 25000]},
+		{ "ocr": "Fufulupa" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [6000, 7000]}
+	],
+	"122": [
+		{ "ocr": "Fufulupa" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [1500, 2500]},
+		{ "img_search": "assets/qitem_last_letter_of_lost_hope.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [6000, 7000]}
+	],
+	"123": [
+		{ "command": "/return" },
+		{ "rand": [222, 333]},
+		{ "img_search": "assets/quest_yes.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "rand": [56, 126]},
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [11000, 12000]}
+	],
+	"124": [
+		{ "command": "/vnav moveto -142.024 -3.154 -172.621" },
+		{ "rand": [222, 333]},
+		{ "ocr": "Aetheryte" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 90000] },
+		{ "command": "confirm" },
+		{ "rand": [1000, 2000]},
+		{ "img_search": "assets/aetheryte_aethernet.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [1000, 2000]},
+		{ "img_search": "assets/uldah_adventurers_guild.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "rand": [56, 126]},
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "double_lclick" },
+		{ "rand": [5000, 6000]}
+	],
+	"125": [
+		{ "goto": ["gladiator.json", 49] }
+	],
+	"126": [
+		{
+			"map": "central_thanalan",
+			"npc": "seseli"
+		},
+		{ "rand": [68000, 69000]},
+		{ "ocr": "Seseli" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 30000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [6000, 7000]}
+	],
+	"127": [
+		{
+			"map": "central_thanalan",
+			"npc": "leofric"
+		},
+		{ "rand": [72000, 73000]},
+		{ "ocr": "Leofric" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 30000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [6000, 7000]}
+	],
+	"128": [
+		{ "ocr": "Leofric" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 30000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [6000, 7000]}
+	],
+	"129": [
+		{ "command": "/vnav moveto 109.400 26.976 -59.153" },
+		{ "rand": [65000, 66000]}
+	],
+	"130": [
+		{
+			"combat": {
+				"region": "783, 30, 1180, 48",
+				"names": ["Quiveron"],
+				"counts": [6],
+				"end_command": "/vnav moveto 125.614 29.092 -14.679"
+			}
+		}
+	],
+	"131": [
+		{ "command": "/vnav moveto 125.614 29.092 -14.679" },
+		{ "ocr": "Baron Von Quiveron" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD6", 15000] },
+		{ "rand": [3000, 4000]},
+		{ "command": "/rotation Auto" },
+		{ "rand": [156, 226]},
+		{ "command": "/bmrai on" },
+		{ "rand": [1500, 2500]},
+		{ "ocr": "Baron Von Quiveron" },
+		{ "region": "783, 30, 1180, 48" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD6", 15000] },
+		{ "rand": [1500, 2500]},
+		{ "await": [2000, "ocr", false, "VK_NUMPAD6", 15000] },
+		{ "command": "/rotation off" },
+		{ "rand": [156, 226]},
+		{ "command": "/bmrai off" },
+		{ "command": "change_stance" },
+		{ "rand": [156, 226]},
+		{ "command": "/vnav moveto 194.192 -2.045 -41.166" }
+	],
+	"132": [
+		{ "goto": ["gladiator_hunting_log.json", 15] }
+	],
+	"133": [
+		{
+			"map": "central_thanalan",
+			"npc": "leofric"
+		},
+		{ "command": "/vnav moveto 97.665 0.340 -273.371" },
+		{ "rand": [65000, 66000]},
+		{ "ocr": "Leofric" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 30000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [6000, 7000]}
+	],
+	"134": [
+		{ "ocr": "Leofric" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 30000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [6000, 7000]}
+	],
+	"135": [
+		{ "command": "/return" },
+		{ "rand": [222, 333]},
+		{ "img_search": "assets/quest_yes.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "rand": [56, 126]},
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [11000, 12000]}
+	],
+	"136": [
+		{ "command": "/vnav moveto -142.024 -3.154 -172.621" },
+		{ "rand": [222, 333]},
+		{ "ocr": "Aetheryte" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 90000] },
+		{ "command": "confirm" },
+		{ "rand": [1000, 2000]},
+		{ "img_search": "assets/aetheryte_aethernet.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [1000, 2000]},
+		{ "img_search": "assets/uldah_gladiators_guild.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "rand": [56, 126]},
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "double_lclick" },
+		{ "rand": [5000, 6000]}
+	],
+	"137": [
+		{ "goto": ["gladiator.json", 58] }
+	],
+	"138": [
+		{
+			"map": "uldah",
+			"npc": "chocobokeep"
+		},
+		{ "rand": [5000, 6000]}
+	],
+	"139": [
+		{ "ocr": "Mimigun" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [4000, 5000]}
+	],
+	"140": [
+		{ "img_search": "assets/chocobo_porter.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [222, 333]},
+		{ "img_search": "assets/chocobo_hire.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "img_search": "assets/chocobo_horizon.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "img_search": "assets/quest_yes.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [86000, 87000]}
+	],
+	"140": [
+		{ "goto": ["assets/msq/seventh_umbral_era/uldah/333_following_footfalls.json", 1] }
+	]
+}

@@ -1,0 +1,17 @@
+{
+	"1": [
+		{ "map": "western_thanalan", "npc": "merilda" },
+		{ "interaction_type": ["npc_interact", {"name": "Merilda"}] }
+	],
+	"2": [
+		{ "vnav": [ "-243.804 15.438 -255.676","-235.552 15.910 -291.679" ] },
+		{ "interaction_type": ["sp_duty", {"name": "Baldewyn"}] }
+	],
+	"3":[
+		{ "map": "western_thanalan", "npc": "fufulupa" },
+		{ "interaction_type": ["npc_interact", {"name": "Fufulupa"}] }
+	],
+	"4": [
+		{ "goto": ["assets/msq/seventh_umbral_era/uldah/628_secrets_and_lies.json", 1] }
+	]
+}

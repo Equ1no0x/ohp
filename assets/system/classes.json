@@ -1,0 +1,7 @@
+{
+  "classes": [
+    { "id": "pld", "name": "paladin", "file": "pld.json" },
+    { "id": "war", "name": "warrior", "file": "war.json" },
+    { "id": "gnb", "name": "gunbreaker", "file": "gnb.json" }
+  ]
+}

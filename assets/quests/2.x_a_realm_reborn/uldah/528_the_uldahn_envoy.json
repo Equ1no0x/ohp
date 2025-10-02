@@ -1,0 +1,144 @@
+{
+	"1": [
+		{ "interaction_type": ["npc_interact", {"name": "Raubahn"}] }
+	],
+	"2": [
+		{ "map": "uldah", "npc": "momodi" },
+		{ "interaction_type": ["npc_interact", {"name": "Momodi"}] }
+	],
+	"3":[
+		{ "map": "uldah", "location": "adventurers_guild_as" },
+		{ "interaction_type": ["use_aethernet_shard", {"name": "Airship Landing"}] }
+	],
+	"4": [
+		{ "map": "uldah_airship_landing", "npc": "elyenora" },
+		{ "interaction_type": ["interact_yes", {"name": "Elyenora"}] }
+	],
+	"5": [
+		{ "map": "uldah_airship_landing", "location": "gangplank" },
+		{ "interaction_type": ["interact_yes", {"name": "Gangplank"}] }
+	],
+	"6": [
+		{ "map": "limsa_airship_landing", "location": "arrival" },
+		{ "map": "limsa_airship_landing", "npc": "arrivals_attendant" },
+		{ "interaction_type": ["interact_yes", {"name": "Arrivals Attendant"}] }
+	],
+	"7": [
+		{ "map": "limsa_airship_landing", "npc": "storm_honor_guard" },
+		{ "interaction_type": ["npc_interact", {"name": "Storm Honor Guard"}] }
+	],
+	"8": [
+		{ "map": "limsa_airship_landing", "npc": "blanmhas" },
+		{ "interaction_type": ["npc_interact", {"name": "Blanmhas"}] }
+	],
+	"9": [
+		{ "interaction_type": ["airship_landing_area_select", {"npc": "Blanmhas"}, {"option": "Ride Lift to Bulwark Hall"}, {"region": "817, 527, 987, 543"}] }
+	],
+	"10": [
+		{ "map": "limsa_lower_decks", "location": "from_airship_landing" },
+		{ "map": "limsa_lower_decks", "npc": "zanthael" },
+		{ "interaction_type": ["npc_interact", {"name": "Zanthael"}] },
+		{ "rand": [10000, 11000]}
+	],
+	"11": [
+		{ "map": "limsa_lower_decks", "location": "limsa_aetheryte" },
+		{ "interaction_type": ["attune_aetheryte"] }
+	],
+	"12": [
+		{ "map": "limsa_lower_decks", "location": "hawkers_alley" },
+		{ "interaction_type": ["attune_aethernet_shard"] }
+	],
+	"13": [
+		{ "map": "limsa_lower_decks", "location": "arcanists_guild" },
+		{ "interaction_type": ["attune_aethernet_shard"] },
+		{ "interaction_type": ["use_aethernet_shard", {"name": "Hawkers' Alley"}] }
+	],
+	"14": [
+		{ "map": "limsa_lower_decks", "location": "fishermens_guild" },
+		{ "interaction_type": ["attune_aethernet_shard"] },
+		{ "interaction_type": ["use_aethernet_shard", {"name": "Aetheryte Plaza"}] }
+	],
+	"15": [
+		{ "map": "limsa_lower_decks", "location": "upper_decks_1" }
+	],
+	"16": [
+		{ "map": "limsa_upper_decks", "location": "upper_decks_from_plaza" },
+		{ "map": "limsa_upper_decks", "location": "culinarians_guild" },
+		{ "interaction_type": ["attune_aethernet_shard"] }
+	],
+	"17": [
+		{ "map": "limsa_upper_decks", "location": "marauders_guild" },
+		{ "interaction_type": ["attune_aethernet_shard"] }
+	],
+	"18": [
+		{ "map": "limsa_upper_decks", "location": "aftcastle_guild" },
+		{ "interaction_type": ["attune_aethernet_shard"] },
+		{ "interaction_type": ["use_aethernet_shard", {"name": "Airship Landing"}] }
+	],
+	"19": [
+		{ "map": "limsa_airship_landing", "location": "entrance" },
+		{ "map": "limsa_airship_landing", "npc": "l'nophlo" },
+		{ "interaction_type": ["interact_yes", {"name": "L'nophlo"}] }
+	],
+	"20": [
+		{ "map": "limsa_airship_landing", "location": "boarding" },
+		{ "map": "limsa_airship_landing", "location": "gangplank" },
+		{ "interaction_type": ["interact_yes", {"name": "Gangplank"}] }
+	],
+	"21": [
+		{ "map": "gridania_airship_landing", "location": "arrival" }
+	],
+	"22": [
+		{ "map": "gridania_airship_landing", "npc": "arrivals_attendant" },
+		{ "interaction_type": ["interact_yes", {"name": "Arrivals"}] }
+	],
+	"23": [
+		{ "map": "new_gridania", "location": "from_airship_landing" },
+		{ "map": "gridania_airship_landing", "npc": "serpent_honor_guard" },
+		{ "interaction_type": ["npc_interact", {"name": "Serpent"}] }
+	],
+	"24": [
+		{ "map": "new_gridania", "location": "gridania_aetheryte" },
+		{ "interaction_type": ["attune_aetheryte"] }
+	],
+	"25": [
+		{ "map": "new_gridania", "location": "archers_guild" },
+		{ "interaction_type": ["attune_aethernet_shard"] },
+		{ "interaction_type": ["use_aethernet_shard", {"name": "Aetheryte Plaza"}] }
+	],
+	"26": [
+		{ "map": "new_gridania", "location": "gridania_aetheryte_tp" },
+		{ "map": "new_gridania", "location": "old_gridania_1" }
+	],
+	"27": [
+		{ "map": "old_gridania", "location": "old_gridania_from_plaza" },
+		{ "map": "old_gridania", "location": "leatherworkers_guild" },
+		{ "interaction_type": ["attune_aethernet_shard"] }
+	],
+	"28": [
+		{ "map": "old_gridania", "location": "lancers_guild" },
+		{ "interaction_type": ["attune_aethernet_shard"] }
+	],
+	"29": [
+		{ "interaction_type": ["use_aethernet_shard", {"name": "Leatherworkers' Guild & Shaded Bower"}] }
+	],
+	"30": [
+		{ "map": "old_gridania", "location": "mih_khettos_amphitheatre" },
+		{ "interaction_type": ["attune_aethernet_shard"] }
+	],
+	"31": [
+		{ "map": "old_gridania", "location": "botanists_guild" },
+		{ "interaction_type": ["attune_aethernet_shard"] }
+	],
+	"32": [
+		{ "map": "old_gridania", "location": "conjurers_guild" },
+		{ "interaction_type": ["attune_aethernet_shard"] }
+	],
+	"33": [
+		{ "map": "old_gridania", "npc": "silent_conjurer" },
+		{ "interaction_type": ["npc_interact", {"name": "Silent Conjurer"}] }
+	],
+	"34": [
+		{ "goto": ["assets/msq/seventh_umbral_era/uldah/673_call_of_the_sea.json", 1] }
+	]
+}

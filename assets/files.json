@@ -1,0 +1,23 @@
+{
+	"keymaps.json": "assets/system/keymaps.json",
+	"commands.json": "assets/system/commands.json",
+	"interaction_types.json": "assets/system/interaction_types.json",
+	"locations.json": "assets/dicts/locations.json",
+	"npcs.json": "assets/dicts/npcs.json",
+	"classes.json": "assets/system/classes.json",
+	"pld.json": "assets/quests/class_quests/pld.json",
+	"progress.json": "assets/quests/progress.json",
+	"594_coming_to_uldah.json": "assets/quests/2.x_a_realm_reborn/uldah/594_coming_to_uldah.json",
+	"568_close_to_home.json": "assets/quests/2.x_a_realm_reborn/uldah/568_close_to_home.json",
+	"333_following_footfalls.json": "assets/quests/2.x_a_realm_reborn/uldah/333_following_footfalls.json",
+	"334_storms_on_the_horizon.json": "assets/quests/2.x_a_realm_reborn/uldah/334_storms_on_the_horizon.json",
+	"336_oh_captain_my_captain.json": "assets/quests/2.x_a_realm_reborn/uldah/336_oh_captain_my_captain.json",
+	"628_secrets_and_lies.json": "assets/quests/2.x_a_realm_reborn/uldah/628_secrets_and_lies.json",
+	"551_duty_honor_country.json": "assets/quests/2.x_a_realm_reborn/uldah/551_duty_honor_country.json",
+	"262_the_old_familiar_feeling.json": "assets/quests/class_quests/pld/262_the_old_familiar_feeling.json",
+	"641_a_matter_of_tradition.json": "assets/quests/2.x_a_realm_reborn/uldah/641_a_matter_of_tradition.json",
+	"552_a_royal_reception.json": "assets/quests/2.x_a_realm_reborn/uldah/552_a_royal_reception.json",
+	"528_the_uldahn_envoy.json": "assets/quests/2.x_a_realm_reborn/uldah/528_the_uldahn_envoy.json",
+	"673_call_of_the_sea.json": "assets/quests/2.x_a_realm_reborn/uldah/673_call_of_the_sea.json",
+	"245_its_probably_pirates.json": "assets/quests/2.x_a_realm_reborn/shared/245_its_probably_pirates.json"
+}

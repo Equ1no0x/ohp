@@ -1,0 +1,31 @@
+{
+	"1": [
+		{ "comment": "Await loading in and seeing coord on navmesh window" },
+		{ "destination": ["42.740 4 -149.306", -1, 5] }
+	],
+	"2": [
+		{ "interaction_type": ["controls_select"] }
+	],
+	"3": [
+		{ "interaction_type": ["open_tutorial"] },
+		{ "interaction_type": ["close_tutorial"] }
+	],
+	"4": [
+		{ "map": "uldah", "npc": "wymond" },
+		{ "interaction_type": ["npc_interact", {"name": "Wymond"}] }
+	],
+	"5": [
+		{ "comment": "Start walking towards Momodi" },
+		{ "destination": ["35.131 4 -151.583", 15000, 5] },
+		{ "interaction_type": ["open_tutorial"] },
+		{ "interaction_type": ["close_tutorial"] }
+	],
+	"6": [
+		{ "map": "uldah", "npc": "momodi" },
+		{ "interaction_type": ["close_tutorial"] },
+		{ "interaction_type": ["npc_interact", {"name": "Momodi"}] }
+	],
+	"7": [
+		{ "goto": 568 }
+	]
+}

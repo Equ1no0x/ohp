@@ -1,0 +1,55 @@
+{
+	"1": [
+		{ "comment": "Close tutorial windows" },
+		{ "interaction_type": ["open_tutorial"] },
+		{ "interaction_type": ["close_tutorial"] },
+		{ "interaction_type": ["open_tutorial"] },
+		{ "interaction_type": ["close_tutorial"] },
+		{ "interaction_type": ["npc_interact", {"name": "Momodi"}] }
+	],
+	"2": [
+		{ "comment": "Await cutscene and close tutorial windows" },
+		{ "destination": ["22.831 6.999 -82.609", -1, 5] },
+		{ "interaction_type": ["open_tutorial"] },
+		{ "interaction_type": ["close_tutorial"] },
+		{ "interaction_type": ["open_tutorial"] },
+		{ "interaction_type": ["close_tutorial"] },
+		{ "interaction_type": ["open_tutorial"] },
+		{ "interaction_type": ["close_tutorial"] }
+	],
+	"3": [
+		{ "comment": "Walk to Steps of Thal border" },
+		{ "vnav": ["95.433 4 -105.263", -1, 10] }
+	],
+	"4": [
+		{ "comment": "Listen to Seseroga" },
+		{ "destination": ["98.876 3.999 -105.674", -1, 5] },
+		{ "map": "uldah", "npc": "seseroga" },
+		{ "interaction_type": ["npc_interact", {"name": "Seseroga"}] }
+	],
+	"5": [
+		{ "comment": "Attune to Uldah Aethernet" },
+		{ "interaction_type": ["open_tutorial"] },
+		{ "interaction_type": ["close_tutorial"] },
+		{ "map": "uldah", "location": "sapphire_avenue_as" },
+		{ "interaction_type": ["attune_aethernet_shard"] }
+	],
+	"6": [
+		{ "interaction_type": ["open_tutorial"] },
+		{ "interaction_type": ["close_tutorial"] },
+		{ "map": "uldah", "location": "weavers_guild_as" },
+		{ "interaction_type": ["attune_aethernet_shard"] }
+	],
+	"7": [
+		{ "map": "uldah", "location": "miners_guild_as" },
+		{ "interaction_type": ["attune_aethernet_shard"] }
+	],
+	"8": [
+		{ "map": "uldah", "location": "goldsmiths_guild_as" },
+		{ "interaction_type": ["attune_aethernet_shard"] }
+	],
+	"9": [
+		{ "map": "uldah", "location": "gladiators_guild_as" },
+		{ "interaction_type": ["attune_aethernet_shard"] }
+	]
+}

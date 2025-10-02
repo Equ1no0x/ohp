@@ -1,0 +1,69 @@
+{
+	"1": [
+		{ "map": "uldah", "location": "adventurers_guild_as" },
+		{ "interaction_type": ["use_aetheryte", {"name": "Gladiators' Guild"}] }
+	],
+	"2": [
+		{ "map": "uldah", "npc": "mylla" },
+		{ "interaction_type": ["npc_interact", {"name": "Mylla"}] }
+	],
+	"3": [
+		{ "goto": ["assets/msq/seventh_umbral_era/uldah/551_duty_honor_country.json", 3] }
+	],
+	"4": [
+		{ "map": "western_thanalan", "location": "eastern_thanalan" },
+		{ "destination": ["-555.755 -20.254 333.432"] }
+	],
+	"5": [
+		{ "map": "estern_thanalan_camp_drybone", "npc": "chocobokeep" },
+		{ "interaction_type": ["npc_interact", {"name": "Chocobokeep"}] },
+		{ "command": "escape" }
+	],
+	"6": [
+		{ "map": "estern_thanalan", "location": "camp_drybone_aetheryte" },
+		{ "interaction_type": ["attune_aetheryte"] }
+	],
+	"7": [
+		{ "vnav": ["-222.125 -38.498 62.966"] },
+		{ "interaction_type": ["npc_interact", {"name": "Injured Gladiator"}] }
+	],
+	"8": [
+		{
+		"combat": {
+			"region": "750, 31, 1190, 52",
+			"names": ["Amalj'aa Ravager"],
+			"counts": [2]
+			}
+		}
+	],
+	"9": [
+		{ "vnav": ["-222.125 -38.498 62.966"] },
+		{ "interaction_type": ["npc_interact", {"name": "Injured Gladiator"}] }
+	],
+	"10": [
+		{ "interaction_type": ["use_return"] }
+	],
+	"11":[
+		{ "map": "uldah", "location": "uldah_aetheryte" },
+		{ "interaction_type": ["use_aetheryte", {"name": "Gladiators' Guild"}] }
+	],
+	"12": [
+		{ "map": "uldah", "npc": "mylla" },
+		{ "interaction_type": ["npc_interact", {"name": "Mylla"}] }
+	],
+	"13": [
+		{ "goto": ["assets/msq/seventh_umbral_era/uldah/551_duty_honor_country.json", 13] }
+	],
+	"14": [
+		{ "vnav": "24.279 7.209 -101.453" },
+		{ "interaction_type": ["sp_duty", {"name": "Aldis"}] }
+	],
+	"15": [
+		{ "map": "uldah", "location": "adventurers_guild_as" },
+		{ "interaction_type": ["use_aethernet_shard", {"name": "Gladiators' Guild"}] }
+	],
+	"16": [
+		{ "map": "uldah", "npc": "mylla" },
+		{ "interaction_type": ["npc_interact", {"name": "Mylla"}] }
+	]
+}

@@ -1,0 +1,5 @@
+{
+	"1": [
+		{ "interaction_type": ["npc_interact", {"name": "Baderon"}] }
+	]
+}

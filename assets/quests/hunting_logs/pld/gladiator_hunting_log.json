@@ -1,0 +1,120 @@
+{
+	"1": [
+		{ "command": "/vnav moveto -125.093 14.720 298.213" },
+		{
+			"combat": {
+				"region": "750, 31, 1190, 52",
+				"names": ["Star Marmot"],
+				"counts": [3],
+				"end_command": "/vnav moveto -125.093 14.720 298.213"
+			}
+		}
+	],
+	"2": [
+		{ "goto": ["uldah_quest_chain.json", 28] }
+	],
+	"3": [
+		{ "command": "/vnav moveto 137.048 16.368 270.809" },
+		{
+			"combat": {
+				"region": "750, 31, 1190, 52",
+				"names": ["Snapping Shrew"],
+				"counts": [3],
+				"end_command": "/vnav moveto 137.048 16.368 270.809"
+			}
+		}
+	],
+	"4": [
+		{ "goto": ["uldah_quest_chain.json", 32] }
+	],
+	"5": [
+		{ "command": "/vnav moveto 76.019 2.405 -191.156" },
+		{ "rand": [10000, 11000]},
+		{
+			"combat": {
+				"region": "750, 31, 1190, 52",
+				"names": ["Antling Worker"],
+				"counts": [3],
+				"end_command": "/vnav moveto 76.019 2.405 -191.156"
+			}
+		}
+	],
+	"6": [
+		{ "goto": ["uldah_quest_chain.json", 65] }
+	],
+	"7": [
+		{ "command": "/vnav moveto -161.760 4.547 -8.034" },
+		{ "rand": [29000, 30000]},
+		{
+			"combat": {
+				"region": "750, 31, 1190, 52",
+				"names": ["Hammer Beak"],
+				"counts": [3],
+				"end_command": "/vnav moveto -161.760 4.547 -8.034"
+			}
+		}
+	],
+	"8": [
+		{ "goto": ["uldah_quest_chain.json", 69] }
+	],
+	"9": [
+		{ "command": "/vnav moveto -194.632 -25.523 70.284" },
+		{ "rand": [39000, 40000]},
+		{
+			"combat": {
+				"region": "750, 31, 1190, 52",
+				"names": ["Graverobber"],
+				"counts": [3],
+				"end_command": "/vnav moveto -194.632 -25.523 70.284"
+			}
+		}
+	],
+	"10": [
+		{ "goto": ["uldah_quest_chain.json", 83] }
+	],
+	"11": [
+		{ "command": "/vnav moveto 47.333 55.548 327.310" },
+		{ "rand": [4000, 5000]},
+		{
+			"combat": {
+				"region": "750, 31, 1190, 52",
+				"names": ["Earth Sprite"],
+				"counts": [3],
+				"end_command": "/vnav moveto 177.601 54.930 236.245"
+			}
+		}
+	],
+	"12": [
+		{ "goto": ["gladiator.json", 39] }
+	],
+	"13": [
+		{ "command": "/vnav moveto 47.205 56.553 28.323" },
+		{ "rand": [72000, 73000]},
+		{
+			"combat": {
+				"region": "750, 31, 1190, 52",
+				"names": ["Dusty"],
+				"counts": [3],
+				"end_command": "/vnav moveto 47.205 56.553 28.323"
+			}
+		}
+	],
+	"14": [
+		{ "goto": ["uldah_quest_chain.json", 96] }
+	],
+	"15": [
+		{ "command": "/vnav moveto 192.642 -2.772 -62.459" },
+		{ "rand": [4000, 5000]},
+		{
+			"combat": {
+				"region": "750, 31, 1190, 52",
+				"names": ["Soldier"],
+				"counts": [3],
+				"end_command": "/vnav moveto 194.192 -2.045 -41.166"
+			}
+		}
+	],
+	"16": [
+		{ "goto": ["uldah_quest_chain.json", 133] }
+	]
+}

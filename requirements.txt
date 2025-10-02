@@ -1,0 +1,8 @@
+pyautogui
+pytesseract
+pillow
+pydirectinput
+psutil
+pygetwindow
+pywin32
+pyperclip

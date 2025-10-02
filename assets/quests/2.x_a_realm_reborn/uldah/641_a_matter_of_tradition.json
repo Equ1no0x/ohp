@@ -1,0 +1,41 @@
+{
+	"1": [
+		{ "map": "thanalan_heart_of_the_sword", "npc": "owyne" },
+		{ "interaction_type": ["npc_interact", {"name": "Owyne"}] }
+	],
+	"2": [
+		{ "map": "thanalan_heart_of_the_sword", "location": "exit" },
+		{ "interaction_type": ["interact_yes", {"name": "Exit"}] }
+	],
+	"3": [
+		{ "map": "uldah", "location": "alchemists_guild_as" },
+		{ "interaction_type": ["use_aethernet_shard", {"name": "Adventurers' Guild"}] },
+		{ "map": "uldah", "location": "adventurers_guild_tp" }
+	],
+	"4": [
+		{ "map": "uldah", "npc": "momodi" },
+		{ "interaction_type": ["npc_interact", {"name": "Momodi"}] }
+	],
+	"5": [
+		{ "goto": ["assets/hlogs/gladiator/262_the_old_familiar_feeling.json", 14] }
+	],
+	"6": [
+		{ "map": "uldah", "location": "gladiators_guild_as" },
+		{ "interaction_type": ["use_aethernet_shard", {"name": "Goldsmiths' Guild"}] },
+		{ "map": "uldah", "location": "goldsmiths_guild_tp" }
+	],
+	"7": [
+		{ "map": "uldah", "npc": "serendipity" },
+		{ "interaction_type": ["npc_interact", {"name": "Serendipity"}] }
+	],
+	"8": [
+		{ "map": "uldah", "location": "goldsmiths_guild_as" },
+		{ "interaction_type": ["use_aethernet_shard", {"name": "Adventurers' Guild"}] },
+		{ "map": "uldah", "location": "adventurers_guild_tp" },
+		{ "map": "uldah", "npc": "momodi" },
+		{ "interaction_type": ["npc_interact", {"name": "Momodi"}] }
+	],
+	"9": [
+		{ "goto": ["assets/msq/seventh_umbral_era/uldah/552_a_royal_reception.json", 1] }
+	]
+}

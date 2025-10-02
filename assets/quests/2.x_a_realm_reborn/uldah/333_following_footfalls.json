@@ -1,0 +1,42 @@
+{
+	"1": [
+		{
+			"map": "western_thanalan",
+			"npc": "fufulupa"
+		},
+		{ "ocr": "Fufulupa" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [6000, 7000]}
+	],
+	"2": [
+		{ "ocr": "Fufulupa" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [1500, 2500]},
+		{ "img_search": "assets/qitem_following_footfalls.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" }
+	],
+	"3": [
+		{
+			"map": "western_thanalan",
+			"npc": "totoruna"
+		},
+		{ "ocr": "Totoruna" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [6000, 7000]}
+	],
+	"4": [
+		{ "goto": ["assets/msq/seventh_umbral_era/uldah/334_storms_on_the_horizon.json", 1] }
+	]
+}

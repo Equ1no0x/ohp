@@ -1,0 +1,21 @@
+{
+  "current": {
+    "job": "pld",
+    "quest": "568_close_to_home",
+    "step": 9
+  },
+  "shared": {
+    "594_coming_to_uldah": {
+      "completed": true,
+      "step": 7
+    }
+  },
+  "jobs": {
+    "pld": {
+      "568_close_to_home": {
+        "completed": false,
+        "step": 9
+      }
+    }
+  }
+}

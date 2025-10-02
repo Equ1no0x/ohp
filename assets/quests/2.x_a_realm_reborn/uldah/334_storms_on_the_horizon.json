@@ -1,0 +1,29 @@
+{
+	"1": [
+		{
+			"map": "western_thanalan",
+			"npc": "nunuzofu"
+		},
+		{ "ocr": "Nunuzofu" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [6000, 7000]}
+	],
+	"2": [
+		{
+			"map": "western_thanalan",
+			"npc": "raffe"
+		},
+		{ "ocr": "Raffe" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [6000, 7000]}
+	],
+	"3": [
+		{ "goto": ["assets/msq/seventh_umbral_era/uldah/336_oh_captain_my_captain.json", 1] }
+	]
+}

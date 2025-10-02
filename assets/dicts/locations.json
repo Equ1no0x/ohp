@@ -1,0 +1,90 @@
+{
+	"uldah": {
+		"uldah_aetheryte": { "vnav": ["-141.747 -3.154 -166.566"] },
+		"uldah_aetheryte_tp": { "destination": ["-137.516 -3.154 -170.12", -1, 10.5] },
+		"adventurers_guild_as": { "vnav": ["63.248 4.1 -117.200"] },
+		"adventurers_guild_tp": { "destination": ["66.239 4 -117.976", -1, 5] },
+		"sapphire_avenue_as": { "vnav": ["132.324 4 -31.650"] },
+		"weavers_guild_as": { "vnav": ["90.689 12.166 56.253"] },
+		"miners_guild_as": { "vnav": ["31.747 12 115.251"] },
+		"goldsmiths_guild_as": { "vnav": ["-19.500 14.075 73.934"] },
+		"goldsmiths_guild_tp": { "destination": ["-20.506 14 77.376", -1, 5] },
+		"gladiators_guild_as": { "vnav": ["-53.148 10 10.668"] },
+		"chamber_of_rule_as": { "vnav": ["3.877 29.999 -24.378"] },
+		"chamber_of_rule_tp": { "destination": ["6.019 30 -22.577", -1, 5] },
+		"alchemists_guild_as": { "vnav": ["-96.754 41 89.241"] },
+		"alchemists_guild_tp": { "vnav": ["-100.714 41 88.628"] },
+		"thaumaturges_guild_as": { "vnav": ["-154.724 14.005 71.020"] },
+		"steps_of_thal_1": { "vnav": ["95.433 4 -105.263"] },
+		"gate_of_nald": { "vnav": ["45.130 3.889 -166.519"] }
+	},
+	"uldah_airship_landing": {
+		"gangplank": { "vnav": ["-44.154 84 -0.479"] }
+	},
+	"thanalan_heart_of_the_sword": {
+		"exit": { "vnav": ["0.032 -0.200 9.239"] }
+	},
+	"thanalan_the_hourglass": {
+		"exit": { "vnav": ["0.038 0.013 5.777"] }
+	},
+	"central_thanalan": {
+		"gate_of_nald": { "vnav": ["-118.175 18.353 341.303"] },
+		"black_brush_aetheryte": { "vnav": ["-16.764 -1.878 -163.592"] },
+		"western_thanalan": { "vnav": ["-407.107 -1.888 101.671"] }
+	},
+	"central_thanalan_black_brush": {
+		"chocobo_hire_end": { "destination": ["-3.688 -2.072 -163.941", -1, 5] }
+	},
+	"western_thanalan": {
+		"horizon_aetheryte": { "vnav": ["69.487 45.932 -223.792"] },
+		"central_thanalan": { "vnav": ["-407.107 -1.888 101.671"] },
+		"eastern_thanalan": { "vnav": ["452.194 -17.999 -180.619", -1 ,10.5] }
+	},
+	"estern_thanalan": {
+		"camp_drybone_aetheryte": { "vnav": ["-386.322 -58.875 139.021"] }
+	},
+	"limsa_lower_decks": {
+		"from_airship_landing": { "destination": ["11.381 20.999 14.096", -1, 5] },
+		"limsa_aetheryte": { "vnav": ["-80.146 18.900 -1.237"] },
+		"hawkers_alley": { "vnav": ["-212.847 15.999 50.261"] },
+		"arcanists_guild": { "vnav": ["-334.667 11.999 54.591"] },
+		"fishermens_guild": { "vnav": ["-180.755 4 181.694"] },
+		"upper_decks_1": { "vnav": ["-83.881 18.475 -29.903"] }
+	},
+	"limsa_upper_decks": {
+		"upper_decks_from_plaza": { "destination": ["-65.183 42.016 -130.276", 30000, 5] },
+		"upper_decks_from_airship": { "destination": ["9.190 40.000 15.176", 30000, 5] },
+		"culinarians_guild": { "vnav": ["-57.779 42 -130.885"] },
+		"marauders_guild": { "vnav": ["-3.946 43.999 -218.032"] },
+		"aftcastle_guild": { "vnav": ["16.012 40 70.150"] }
+	},
+	"limsa_airship_landing": {
+		"arrival": { "destination": ["-13.387 92 16.320", -1, 5] },
+		"after_gate": { "destination": ["-12.567 91.499 -7.232", -1, 5] },
+		"entrance": { "destination": ["-19.414 91.999 -9.779", -1, 5] },
+		"boarding": { "destination": ["-24.143 92 3.556", -1, 5] },
+		"gangplank": { "vnav": ["-12.399 92 16.646"] }
+	},
+	"new_gridania": {
+		"from_airship_landing": { "destination": ["34.964 -19.000 104.192", -1, 5] },
+		"gridania_aetheryte": { "vnav": ["30.961 2.200 31.959"] },
+		"gridania_aetheryte_tp": { "destination": ["32.119 1.200 37.851", -1, 15] },
+		"old_gridania_1": { "vnav": ["12.761 1.265 -18.021", -1, 10] },
+		"archers_guild": { "vnav": ["166.223 -2.473 84.911"] }
+	},
+	"old_gridania": {
+		"old_gridania_from_plaza": { "destination": ["16.937 8.383 -94.551", -1, 5] },
+		"leatherworkers_guild": { "vnav": ["100.623 8.167 -109.970"] },
+		"lancers_guild": { "vnav": [ "121.705 12.256 -100.795", "120.855 11.464 -231.245" ] },
+		"mih_khettos_amphitheatre": { "vnav": [ "-74.696 7.137 -138.857", ["-309.577 7.949 -176.811", -1, 5 ]] },
+		"botanists_guild": { "vnav": [ "-174.090 10.919 -162.125", "-309.577 7.949 -176.811" ] },
+		"conjurers_guild": { "vnav": [ "-146.653 4 -12.873", -1, 5 ] },
+		"conjurers_guild_tp": { "destination": [ "-147.360 3.999 -13.771", -1, 5 ] }
+	},
+	"gridania_airship_landing": {
+		"arrival": { "destination": ["9.670 -21.970 124.192", -1, 5] },
+		"entrance": { "destination": ["-19.414 91.999 -9.779", -1, 5] },
+		"boarding": { "destination": ["-24.143 92 3.556", -1, 5] },
+		"gangplank": { "vnav": ["-12.399 92 16.646"] }
+	}
+}

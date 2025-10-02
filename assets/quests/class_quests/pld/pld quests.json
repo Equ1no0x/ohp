@@ -1,0 +1,664 @@
+{
+	"1": [
+		{ "comment": "Start PLD quest chains" },
+		{ "goto": ["594_coming_to_uldah.json", 1] }
+	],
+	"2": [
+		{ "rand": [1500, 2500]},
+		{ "command": "confirm" },
+		{ "command": "confirm" },
+		{ "rand": [222, 333]},
+		{ "img_search": "assets/uldah_gladiators_guild.png" },
+		{ "await": [1000, "img", true, "", 5000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "double_lclick" },
+		{ "rand": [5000, 6000] }
+	],
+	"3": [
+		{ "map": "uldah", "npc": "lulutsu" },
+		{ "rand": [10000, 11000]},
+		{ "ocr": "Lulutsu" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "command": "confirm" }
+	],
+	"4": [
+		{ "ocr": "Lulutsu" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "command": "confirm" },
+		{ "rand": [222, 333]},
+		{ "img_search": "assets/quest_yes.png" },
+		{ "await": [1000, "img", true, "", 5000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" }
+	],
+	"5": [
+		{ "map": "uldah", "npc": "mylla" },
+		{ "rand": [4000, 5000]},
+		{ "ocr": "Mylla" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "command": "confirm" }
+	],
+	"6": [
+		{ "rand": [9000, 10000]},
+		{ "img_search": "assets/quest_yes.png" },
+		{ "await": [1000, "img", true, "", 5000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [5000, 6000]}
+	],
+	"7": [
+		{ "goto": ["uldah_quest_chain.json", 18] }
+	],
+	"8": [
+		{ "map": "uldah", "location": "gate_of_nald" },
+		{ "rand": [16000, 17000]},
+		{ "img_search": "assets/map_central_thanalan_from_gate_of_nald.png" },
+		{ "await": [1000, "img", true, "", 5000] }
+	],
+	"9": [
+		{ "command": "/vnav moveto -116.106 10.801 276.979" },
+		{ "rand": [7000, 8000]},
+		{
+			"combat": {
+				"region": "750, 31, 1190, 52",
+				"names": ["Star Marmot", "Huge Hornet"],
+				"counts": [3, 3],
+				"end_command": "/vnav moveto -119.961 13.964 294.191"
+			}
+		}
+	],
+	"10": [
+		{ "command": "/vnav moveto 17.391 5.925 296.552" },
+		{ "rand": [16000, 17000]},
+		{
+			"combat": {
+				"region": "750, 31, 1190, 52",
+				"names": ["Snapping Shrew"],
+				"counts": [3],
+				"end_command": "/vnav moveto 17.391 5.925 296.552"
+			}
+		}
+	],
+	"11": [
+		{ "map": "central_thanalan", "location": "gate_of_nald" },
+		{ "rand": [20000, 21000]},
+		{ "img_search": "assets/map_uldah_from_gate_of_nald.png" },
+		{ "await": [1000, "img", true, "", 5000] }
+	],
+	"12": [
+		{ "map": "uldah", "location": "adventurers_guild_as" },
+		{ "rand": [12000, 13000]},
+		{ "ocr": "Aethernet Shard" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" }
+	],
+	"13": [
+		{ "rand": [222, 333]},
+		{ "img_search": "assets/uldah_gladiators_guild.png" },
+		{ "await": [1000, "img", true, "", 5000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [333, 444]},
+		{ "command": "double_lclick" },
+		{ "rand": [5000, 6000] }
+	],
+	"14": [
+		{ "map": "uldah", "npc": "mylla" },
+		{ "rand": [15000, 16000] },
+		{ "ocr": "Mylla" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" }
+	],
+	"15": [
+		{ "ocr": "Mylla" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [1500, 2500]}
+	],
+	"16": [
+		{ "map": "uldah", "location": "gladiators_guild_as" },
+		{ "ocr": "Aethernet Shard" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "rand": [12000, 13000]},
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 5000] },
+		{ "rand": [222, 333]}
+	],
+	"17": [
+		{ "command": "confirm" },
+		{ "command": "confirm" },
+		{ "rand": [222, 333]},
+		{ "img_search": "assets/uldah_adventurers_guild.png" },
+		{ "await": [1000, "img", true, "", 5000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [333, 444]},
+		{ "command": "double_lclick" },
+		{ "rand": [5000, 6000] }
+	],
+	"18" :[
+		{ "command": "/vnav moveto 76.118 4.099 -136.998" },
+		{ "rand": [5000, 6000] },
+		{ "ocr": "Menacing Marauder" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 5000] },
+		{ "command": "/me" },
+		{ "rand": [6000, 7000] }
+	],
+	"19" :[
+		{ "command": "/vnav moveto 46.335 4 -129.562" },
+		{ "rand": [7000, 8000] },
+		{ "ocr": "Ill-mannered Marauder" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 5000] },
+		{ "command": "/me" },
+		{ "rand": [6000, 7000] }
+	],
+	"20" :[
+		{ "command": "/vnav moveto 16.586 7.999 -125.309" },
+		{ "rand": [7000, 8000] },
+		{ "ocr": "Mocking Marauder" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 5000] },
+		{ "command": "/me" },
+		{ "rand": [6000, 7000] }
+	],
+	"21" :[
+		{ "command": "/vnav moveto 14.065 4.099 -154.674" },
+		{ "rand": [6000, 7000] },
+		{ "ocr": "Keen-eyed Marauder" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 5000] },
+		{ "command": "/me" },
+		{ "rand": [6000, 7000] }
+	],
+	"22" :[
+		{ "goto": ["uldah_quest_chain.json", 21] }
+	],
+	"23" :[
+		{ "command": "/vnav moveto 21.518 7.199 -95.670" },
+		{ "rand": [4000, 5000] },
+		{ "ocr": "Pfarmurl" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 5000] },
+		{ "command": "/me" },
+		{ "rand": [6000, 7000] }
+	],
+	"24": [
+		{
+			"map": "uldah",
+			"npc": "momodi"
+		}
+	],
+	"25": [
+		{ "rand": [4000, 5000]},
+		{ "ocr": "Momodi" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "command": "confirm" },
+		{ "rand": [1500, 2500]}
+	],
+	"26": [
+		{ "map": "uldah", "location": "adventurers_guild_as" },
+		{ "rand": [12000, 13000]},
+		{ "ocr": "Aethernet Shard" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 5000] },
+		{ "rand": [222, 333]}
+	],
+	"27": [
+		{ "command": "confirm" },
+		{ "command": "confirm" },
+		{ "rand": [222, 333]},
+		{ "img_search": "assets/uldah_gladiators_guild.png" },
+		{ "await": [1000, "img", true, "", 5000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [333, 444]},
+		{ "command": "double_lclick" },
+		{ "rand": [5000, 6000] }
+	],
+	"28": [
+		{ "map": "uldah", "npc": "mylla" },
+		{ "rand": [15000, 16000] },
+		{ "ocr": "Mylla" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "command": "confirm" }
+	],
+	"29": [
+		{ "goto": ["uldah_quest_chain.json", 25] }
+	],
+	"30": [
+		{
+			"map": "western_thanalan",
+			"npc": "nervous_merchant"
+		},
+		{ "rand": [23000, 24000]}
+	],
+	"31": [
+		{ "ocr": "Nervous Merchant" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [4000, 5000]}
+	],
+	"32" :[
+		{ "command": "/vnav moveto 154.998 52.599 199.857" },
+		{ "rand": [9000, 10000] },
+		{ "ocr": "Caravan Sack" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 5000] },
+		{ "command": "confirm" }
+	],
+	"33": [
+		{ "command": "/rotation Auto" },
+		{ "rand": [156, 226]},
+		{ "command": "/bmrai on" },
+		{ "rand": [156, 226]}
+	],
+	"34": [
+		{ "ocr": "Murderous Marauder" },
+		{ "region": "783, 30, 1180, 48" },
+		{ "await": [1000, "ocr", true, "", 5000] },
+		{ "ocr": "Murderous Marauder" },
+		{ "region": "783, 30, 1180, 48" },
+		{ "await": [1000, "ocr", false, "", 5000] },
+		{ "command": "/rotation off" },
+		{ "rand": [156, 226]},
+		{ "command": "/bmrai off" },
+		{ "rand": [156, 226]}
+	],
+	"35" :[
+		{ "command": "/vnav moveto 142.280 52.963 220.570" },
+		{ "rand": [4000, 5000] },
+		{ "ocr": "Caravan Sack" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 5000] },
+		{ "command": "confirm" }
+	],
+	"36": [
+		{ "command": "/rotation Auto" },
+		{ "rand": [156, 226]},
+		{ "command": "/bmrai on" },
+		{ "rand": [156, 226]}
+	],
+	"37": [
+		{ "ocr": "Pfarmurl" },
+		{ "region": "783, 30, 1180, 48" },
+		{ "await": [1000, "ocr", true, "", 5000] },
+		{ "ocr": "Pfarmurl" },
+		{ "region": "783, 30, 1180, 48" },
+		{ "await": [1000, "ocr", false, "", 5000] },
+		{ "command": "/rotation off" },
+		{ "rand": [156, 226]},
+		{ "command": "/bmrai off" },
+		{ "rand": [156, 226]}
+	],
+	"38": [
+		{ "goto": ["gladiator_hunting_log.json", 11] }
+	],
+	"39": [
+		{
+			"map": "western_thanalan",
+			"npc": "nervous_merchant"
+		},
+		{ "rand": [25000, 26000]}
+	],
+	"40": [
+		{ "ocr": "Nervous Merchant" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [4000, 5000]}
+	],
+	"41": [
+		{ "goto": ["uldah_quest_chain.json", 93] }
+	],
+	"42": [
+		{ "map": "uldah", "location": "adventurers_guild_as" },
+		{ "ocr": "Aethernet Shard" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "rand": [12000, 13000]},
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 5000] },
+		{ "rand": [222, 333]}
+	],
+	"43": [
+		{ "command": "confirm" },
+		{ "command": "confirm" },
+		{ "rand": [222, 333]},
+		{ "img_search": "assets/uldah_gladiators_guild.png" },
+		{ "await": [1000, "img", true, "", 5000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [333, 444]},
+		{ "command": "double_lclick" },
+		{ "rand": [5000, 6000] }
+	],
+	"44": [
+		{ "map": "uldah", "npc": "mylla" },
+		{ "rand": [15000, 16000] },
+		{ "ocr": "Mylla" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [5000, 6000] }
+	],
+	"45": [
+		{ "ocr": "Mylla" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [5000, 6000] }
+	],
+	"46": [
+		{ "map": "uldah", "location": "gladiators_guild_as" },
+		{ "rand": [12000, 13000]},
+		{ "ocr": "Aethernet Shard" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 5000] },
+		{ "rand": [222, 333]}
+	],
+	"47": [
+		{ "command": "confirm" },
+		{ "command": "confirm" },
+		{ "rand": [222, 333]},
+		{ "img_search": "assets/uldah_adventurers_guild.png" },
+		{ "await": [1000, "img", true, "", 5000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [333, 444]},
+		{ "command": "double_lclick" },
+		{ "rand": [5000, 6000] }
+	],
+	"48": [
+		{ "goto": ["uldah_quest_chain.json", 107] }
+	],
+	"49": [
+		{
+			"map": "uldah",
+			"npc": "chocobokeep"
+		},
+		{ "rand": [5000, 6000]}
+	],
+	"50": [
+		{ "ocr": "Mimigun" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [4000, 5000]}
+	],
+	"51": [
+		{ "img_search": "assets/chocobo_rent_1.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "img_search": "assets/chocobo_rent_2.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "img_search": "assets/chocobo_rent_y.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [13000, 14000]}
+	],
+	"52": [
+		{ "img_search": "assets/map_central_thanalan_from_gate_of_nald_rent.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "command": "/vnav moveto -139.012 4.019 206.478" },
+		{ "rand": [21000, 22000]}
+	],
+	"53": [
+		{ "ocr": "Gutless Gladiator" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [4000, 5000]}
+	],
+	"54": [
+		{ "command": "/rotation Auto" },
+		{ "rand": [156, 226]},
+		{ "command": "/bmrai on" },
+		{ "rand": [1500, 2500]},
+		{ "ocr": "Freelancer" },
+		{ "region": "783, 30, 1180, 48" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [45000, 46000]},
+		{ "await": [2000, "ocr", false, "VK_NUMPAD0", 120000] },
+		{ "command": "/rotation off" },
+		{ "rand": [156, 226]},
+		{ "command": "/bmrai off" },
+		{ "command": "change_stance" },
+		{ "rand": [156, 226]}
+	],
+	"55": [
+		{ "command": "/vnav moveto -139.012 4.019 206.478" },
+		{ "rand": [6000, 7000]}
+	],
+	"56": [
+		{ "ocr": "Gutless Gladiator" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [4000, 5000]}
+	],
+	"57": [
+		{ "goto": ["uldah_quest_chain.json", 126] }
+	],
+	"58": [
+		{ "map": "uldah", "npc": "mylla" },
+		{ "rand": [15000, 16000] },
+		{ "ocr": "Mylla" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [5000, 6000] }
+	],
+	"59": [
+		{ "map": "uldah", "location": "gladiators_guild_as" },
+		{ "rand": [12000, 13000]},
+		{ "ocr": "Aethernet Shard" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 5000] },
+		{ "rand": [222, 333]}
+	],
+	"60": [
+		{ "command": "confirm" },
+		{ "command": "confirm" },
+		{ "rand": [222, 333]},
+		{ "img_search": "assets/uldah_adventurers_guild.png" },
+		{ "await": [1000, "img", true, "", 5000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [333, 444]},
+		{ "command": "double_lclick" },
+		{ "rand": [5000, 6000] }
+	],
+	"61": [
+		{
+			"map": "uldah",
+			"npc": "chocobokeep"
+		},
+		{ "rand": [5000, 6000]}
+	],
+	"62": [
+		{ "ocr": "Mimigun" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 120000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [4000, 5000]}
+	],
+	"63": [
+		{ "img_search": "assets/chocobo_rent_1.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "img_search": "assets/chocobo_rent_2.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "img_search": "assets/chocobo_rent_y.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [13000, 14000]}
+	],
+	"64": [
+		{ "img_search": "assets/map_central_thanalan_from_gate_of_nald_rent.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "command": "/vnav moveto 26.516 12.985 53.166" },
+		{ "rand": [38000, 39000]}
+	],
+	"65": [
+		{ "img_search": "assets/chocobo_dismount.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" }
+	],
+	"66": [
+		{ "ocr": "Destination" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 90000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [4000, 5000]},
+		{ "img_search": "assets/quest_proceed.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" }
+	],
+	"67": [
+		{ "rand": [8000, 9000]},
+		{ "command": "/vnav moveto 13.874 13.343 44.032" },
+		{ "command": "/rotation Auto" },
+		{ "rand": [156, 226]},
+		{ "command": "/bmrai on" },
+		{ "rand": [11000, 12000]},
+		{ "command": "/vnav moveto 27.514 13.706 77.093" },
+		{ "rand": [20000, 21000]},
+		{ "command": "/vnav moveto 13.874 13.343 44.032" },
+		{ "rand": [156, 226]}
+	],
+	"68": [
+		{ "img_search": "assets/map_central_thanalan_quest_passing_the_blade.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "command": "/rotation off" },
+		{ "rand": [156, 226]},
+		{ "command": "/bmrai off" },
+		{ "rand": [156, 226]}
+	],
+	"69": [
+		{ "command": "/vnav moveto 24.048 13 51.189" } ,
+		{ "ocr": "Bruce the Big" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 90000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [4000, 5000]}
+	],
+	"70": [
+		{ "command": "/return" },
+		{ "rand": [222, 333]},
+		{ "img_search": "assets/quest_yes.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "rand": [56, 126]},
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [11000, 12000]}
+	],
+	"71": [
+		{ "command": "/vnav moveto -142.024 -3.154 -172.621" },
+		{ "rand": [222, 333]},
+		{ "ocr": "Aetheryte" },
+		{ "region": "712, 29, 1190, 52" },
+		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 90000] },
+		{ "command": "confirm" },
+		{ "rand": [1000, 2000]},
+		{ "img_search": "assets/aetheryte_aethernet.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [1000, 2000]},
+		{ "img_search": "assets/uldah_gladiators_guild.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "rand": [56, 126]},
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "double_lclick" },
+		{ "rand": [5000, 6000]}
+	],
+	"72": [
+		{ "map": "uldah", "npc": "mylla" },
+		{ "rand": [15000, 16000] },
+		{ "ocr": "Mylla" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 60000] },
+		{ "rand": [56, 126]},
+		{ "command": "confirm" },
+		{ "rand": [5000, 6000] },
+		{ "rand": [222, 333]},
+		{ "img_search": "assets/qitem_they_were_tracking_a_man_named_aldis.png" },
+		{ "await": [2000, "img", true, "", 90000] },
+		{ "rand": [56, 126]},
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" }
+	],
+	"73": [
+		{ "map": "uldah", "location": "gladiators_guild_as" },
+		{ "rand": [12000, 13000]},
+		{ "ocr": "Aethernet Shard" },
+		{ "region": "712, 31, 1190, 52" },
+		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 5000] },
+		{ "rand": [222, 333]}
+	],
+	"74": [
+		{ "command": "confirm" },
+		{ "command": "confirm" },
+		{ "rand": [222, 333]},
+		{ "img_search": "assets/uldah_adventurers_guild.png" },
+		{ "await": [1000, "img", true, "", 5000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [333, 444]},
+		{ "command": "double_lclick" },
+		{ "rand": [5000, 6000] }
+	],
+	"75": [
+		{ "goto": ["uldah_quest_chain.json", 138] }
+	]
+}
