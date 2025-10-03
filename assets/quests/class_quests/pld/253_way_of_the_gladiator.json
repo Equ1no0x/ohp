@@ -1,12 +1,20 @@
 {
 	"1": [
 		{ "map": "uldah", "npc": "lulutsu" },
-		{ "interaction_type": ["npc_interact"] },
+		{ "interaction_type": ["npc_interact", {"name": "Lulutsu"}] },
 		{ "interaction_type": ["interact_yes", {"name": "Lulutsu"}] }
 	],
 	"2": [
 		{ "map": "uldah", "npc": "mylla" },
 		{ "interaction_type": ["interact_yes", {"name": "Mylla"}] },
 		{ "destination": ["-94.602 6.500 38.299", 16000, 5] }
+	],
+	"3": [
+		{ "goto": [568, 17] }
+	],
+	"4": [
+		{ "destination": ["21.857 7 -81.278", -1, 10] },
+		{ "comment": "Walk to Gate of Nald border" },
+		{ "map": "uldah", "location": "gate_of_nald" }
 	]
 }

@@ -1,5 +1,3 @@
-# REPLACEMENT FOR ENTIRE FILE — project.py
-
 import ctypes
 import random
 import time
@@ -70,6 +68,9 @@ last_ocr_match_center = None
 last_img_match_center = None
 last_detection_type = None
 current_step = None
+
+# --- GOTO call stack for nested quest jumps ---
+GOTO_STACK = []  # each frame: (return_file_fullpath, return_step_int)
 
 # OCR: default ceiling for general OCR calls
 TESSERACT_TIMEOUT_SEC = 5
@@ -353,7 +354,7 @@ def perform_img_search(template_path, threshold=0.8):
 
     orig = template_path
     template_path = resolve_image_path(template_path) or template_path
-    print(f"[*] Performing image search with template: {orig} → {template_path}")
+    print(f"[*] Performing image search with template: {orig} â†’ {template_path}")
 
     # Capture full screen
     screenshot = ImageGrab.grab()
@@ -386,8 +387,8 @@ def perform_img_search(template_path, threshold=0.8):
 # --- Fuzzy OCR for chat lines (case-insensitive, punctuation-tolerant) ---
 def _normalize_chat_text(s: str) -> str:
     s = (s or "").lower()
-    s = s.replace("’", "'").replace("‘", "'")  # unify apostrophes
-    s = re.sub(r"[\.…]+$", "", s)              # drop trailing dots (OCR often misses them)
+    s = s.replace("â€™", "'").replace("â€˜", "'")  # unify apostrophes
+    s = re.sub(r"[\.â€¦]+$", "", s)              # drop trailing dots (OCR often misses them)
     s = re.sub(r"\s+", " ", s).strip()
     return s
 
@@ -468,7 +469,7 @@ def load_json(filename):
 def _substitute_params(obj, params):
     """Replace $key placeholders; keep non-string types when the placeholder is the entire string."""
     if isinstance(obj, str):
-        # Exact-token replacement (preserve type): "…": "$var"
+        # Exact-token replacement (preserve type): "â€¦": "$var"
         if obj.startswith("$") and params and (obj[1:] in params):
             val = params[obj[1:]]
             # Only use exact-token rule when the placeholder is the entire string;
@@ -820,7 +821,7 @@ def resolve_goto_chain(file, step):
             break
         visited.add((file, step))
         if os.path.exists(target_file):
-            print(f"[*] Resolving startup GOTO → {target_file}, step {target_step}")
+            print(f"[*] Resolving startup GOTO â†’ {target_file}, step {target_step}")
             file = target_file
             step = int(target_step)
         else:
@@ -1034,7 +1035,7 @@ def vnav_go(coord_str: str, timeout_ms: int, tolerance: float, keymap) -> bool:
         return False
 
     cmd = f"/vnav moveto {coord_str}"
-    print(f"  [*] vnav → {cmd} (tolerance={tolerance})")
+    print(f"  [*] vnav â†’ {cmd} (tolerance={tolerance})")
     send_chat_command(cmd, keymap)
 
     # NEW: negative timeout => wait forever
@@ -1072,7 +1073,7 @@ def wait_until_near(coord_str: str, timeout_ms: int, tolerance: float) -> bool:
         print(f"[!] destination: {e}")
         return False
 
-    print(f"  [*] destination → target {coord_str} (tolerance={tolerance})")
+    print(f"  [*] destination â†’ target {coord_str} (tolerance={tolerance})")
 
     wait_forever = (timeout_ms is None) or (int(timeout_ms) < 0)
     start = time.time()
@@ -1337,7 +1338,7 @@ def await_battle_defeat(monster_name: str, keymap,
 # --- OCR Debugging chat helpers ---
 def _norm_token_generic(s: str) -> str:
     s = (s or "").lower()
-    s = s.replace("’", "'").replace("‘", "'")
+    s = s.replace("â€™", "'").replace("â€˜", "'")
     s = re.sub(r"(?:^[^\w]+)|(?:[^\w]+$)", "", s)  # trim punctuation at ends
     return s
 
@@ -1390,7 +1391,7 @@ def _dump_ocr_debug(results, region=None, target=None):
         for i, ln in enumerate(lines[:OCR_DEBUG_MAX_LINES], 1):
             print(f"  {i:>2}. raw='{ln['raw']}' | norm='{ln['norm']}' | center={ln['center']} bbox={ln['bbox']}")
         if len(lines) > OCR_DEBUG_MAX_LINES:
-            print(f"  … {len(lines) - OCR_DEBUG_MAX_LINES} more line(s) omitted")
+            print(f"  â€¦ {len(lines) - OCR_DEBUG_MAX_LINES} more line(s) omitted")
     except Exception as e:
         print(f"[dbg][ocr] dump failed: {e}")
 
@@ -1467,10 +1468,10 @@ selected_class = selected_entry.get("id", user_in)
 
 # Optional: show the resolved path for clarity (still loaded via the registry)
 job_file_resolved = resolve_file_path(job_file) or job_file
-print(f"[+] Selected job: {selected_class} → {job_file_resolved}")
+print(f"[+] Selected job: {selected_class} â†’ {job_file_resolved}")
 
 # --- ALWAYS load the CLASS file (manifest) first ---
-manifest_raw = load_json(job_file)  # e.g. "pld.json" → list of {"quest": "...", "source": "shared"|"class"}
+manifest_raw = load_json(job_file)  # e.g. "pld.json" â†’ list of {"quest": "...", "source": "shared"|"class"}
 print(f"[+] Loaded data from {job_file}")
 
 # Normalize manifest to a list
@@ -1521,7 +1522,7 @@ if cur.get("job") == selected_class and cur.get("quest"):
     # resolve "<qkey>.json" first, then bare qkey (both via files.json)
     qpath = resolve_file_path(f"{qkey}.json") or resolve_file_path(qkey)
     if qpath:
-        # if it’s not completed in either shared or class space, resume it
+        # if itâ€™s not completed in either shared or class space, resume it
         if not _is_completed(qkey, "shared") and not _is_completed(qkey, "class"):
             current_file = qpath
             current_step = int(cur.get("step") or _saved_step(qkey, "shared") or _saved_step(qkey, "class") or 1)
@@ -1555,39 +1556,229 @@ if not current_file:
 # Persist the 'current' pointer now that we know what to run
 _set_current(current_quest_key, current_step)
 
+def _resume_from_saved_step() -> bool:
+    """
+    Reload current_file and jump to the next defined step after saved_step.
+    If the quest had been marked completed but a new step now exists, set completed=False.
+    If no next step exists, auto-advance to the next incomplete quest from the manifest.
+    """
+    global current_file, current_step, data, progress
+    print("[*] RESUME requested.")
+
+    # Reload registries & current quest file to see newly-added steps
+    reload_jsons()
+    data = load_json(current_file)
+
+    # All defined step keys in the current file
+    try:
+        keys = sorted(int(k) for k in (data.keys() if isinstance(data, dict) else []))
+    except Exception:
+        keys = []
+
+    # Baseline = saved step (defaults to 1 if not present)
+    saved_step = load_progress(current_file)
+    try:
+        baseline = int(saved_step) if isinstance(saved_step, int) else 0
+    except Exception:
+        baseline = 0
+
+    # Next defined step strictly after baseline
+    next_defined = next((k for k in keys if k > baseline), None)
+
+    if next_defined is None:
+        # Nothing new in this quest → try the next incomplete quest from manifest
+        return _auto_advance_to_next_incomplete()
+
+    # There is a new step → ensure this quest is NOT marked completed
+    root = _progress_load_root()
+    qkey = _quest_key_for_path(current_file)
+    src  = _quest_source_for(qkey, manifest_list)
+    if src == "shared":
+        root.setdefault("shared", {}).setdefault(qkey, {})["completed"] = False
+        root["shared"][qkey]["step"] = int(baseline)
+    else:
+        root.setdefault("jobs", {}).setdefault(selected_class, {}).setdefault(qkey, {})["completed"] = False
+        root["jobs"][selected_class][qkey]["step"] = int(baseline)
+
+    # Update current pointer and persist
+    current_step = int(next_defined)
+    root.setdefault("current", {})
+    root["current"].update({"job": selected_class, "quest": qkey, "step": current_step})
+    _progress_save_root(root)
+    progress = root
+
+    print(f"[*] RESUME → {os.path.basename(current_file)} step {current_step}")
+    return True
+
+def _auto_advance_to_next_incomplete() -> bool:
+    """
+    Scan manifest_list in order; pick the first quest not completed in progress.json.
+    If found, load it and set current_step from saved progress (else 1).
+    Returns True if we switched file/step; False otherwise.
+    """
+    global current_file, current_step, data, progress
+
+    root = _progress_load_root()
+
+    def _is_incomplete(qkey: str, source: str) -> bool:
+        s = (source or "class").lower()
+        if s == "shared":
+            return not bool(root.get("shared", {}).get(qkey, {}).get("completed"))
+        return not bool(root.get("jobs", {}).get(selected_class, {}).get(qkey, {}).get("completed"))
+
+    for ent in (manifest_list or []):
+        if not isinstance(ent, dict):
+            continue
+        qk = str(ent.get("quest") or "").strip().lower()
+        if not qk:
+            continue
+        src = str(ent.get("source") or "class").lower()
+        if not _is_incomplete(qk, src):
+            continue
+
+        qp = resolve_file_path(f"{qk}.json") or resolve_file_path(qk)
+        if not qp:
+            continue
+
+        # Switch to that quest
+        current_file = qp
+        data = load_json(current_file)
+        step_saved = load_progress(current_file)
+        current_step = int(step_saved) if isinstance(step_saved, int) and step_saved > 0 else 1
+
+        # Sync "current" pointer
+        root.setdefault("current", {})
+        root["current"].update({"job": selected_class, "quest": qk, "step": current_step})
+        _progress_save_root(root)
+        progress = root
+
+        print(f"[+] Next quest: {os.path.basename(current_file)} (step {current_step})")
+        return True
+
+    return False
+
 print(f"[+] Job file: {current_file}")
 
 # Load the QUEST macro file (not the class manifest) and normalize step
 data = load_json(current_file)
 current_step = 1 if not isinstance(current_step, int) or current_step <= 0 else current_step
 
-# Ensure the loaded step is valid
-step_keys = sorted(int(k) for k in data.keys())
-if not step_keys:
-    print(f"[!] No steps defined in {os.path.basename(current_file)}")
-    exit(0)
-if str(current_step) not in data:
-    next_keys = [k for k in step_keys if k >= current_step]
-    if not next_keys:
-        # No more steps in this file → drop into interactive console
-        print(f"[+] Finished {current_file} at step {current_step-1}.")
-        print("[+] Enter a command (/exec <file> [step] [continue] or /resume), or 'exit' to quit.")
+# Ensure the loaded step is valid (loop until we have a runnable step/file)
+while True:
+    step_keys = sorted(int(k) for k in data.keys())
+    if not step_keys:
+        print(f"[!] No steps defined in {os.path.basename(current_file)}")
+        sys.exit(0)
 
-        while True:
-            user_cmd = input("> ").strip()
-            if user_cmd.lower() in ("exit", "quit"):
-                print("[+] Exiting.")
-                try: logwatch.stop()
-                except Exception: pass
-                exit(0)
-            elif user_cmd:
-                # Fake a step with a 'command' entry
-                data = { "1": [ { "command": user_cmd } ] }
-                reload_jsons()
+    if str(current_step) not in data:
+        next_keys = [k for k in step_keys if k >= current_step]
+        if not next_keys:
+            # No more steps in this file â†’ mark completed, return via stack if any,
+            # else auto-advance to next incomplete quest; only open console if none exist.
+            print(f"[+] Finished {os.path.basename(current_file)} at step {current_step-1}.")
+
+            # 1) Mark THIS quest completed in progress.json (and keep in-memory 'progress' fresh)
+            try:
+                root = _progress_load_root()
+                qkey = _quest_key_for_path(current_file)
+                src  = _quest_source_for(qkey, manifest_list)
+                if src == "shared":
+                    root.setdefault("shared", {}).setdefault(qkey, {})["completed"] = True
+                else:
+                    root.setdefault("jobs", {}).setdefault(selected_class, {}).setdefault(qkey, {})["completed"] = True
+                _progress_save_root(root)
+                progress = root  # keep in-memory in sync
+            except Exception as e:
+                print(f"[!] Failed to mark quest completed: {e}")
+
+            # 2) If we arrived here via goto, POP and return to the caller
+            if GOTO_STACK:
+                ret_file, ret_step = GOTO_STACK.pop()
+                try:
+                    data = load_json(ret_file)
+                    current_file = ret_file
+                    current_step = int(ret_step)
+                    # Update current pointer
+                    root = _progress_load_root()
+                    root.setdefault("current", {})
+                    root["current"].update({
+                        "job": selected_class,
+                        "quest": _quest_key_for_path(current_file),
+                        "step": current_step
+                    })
+                    _progress_save_root(root)
+                    progress = root
+                    print(f"[*] Returning to {os.path.basename(current_file)} at step {current_step} (via goto stack).")
+                except Exception as e:
+                    print(f"[!] Failed to return to caller: {e}")
+                # re-enter loop with returned file/step
+                continue
+
+            # 3) Otherwise auto-advance to the next incomplete quest from the manifest
+            try:
+                if _auto_advance_to_next_incomplete():
+                    # we switched file/step; re-enter loop
+                    continue
+            except Exception as e:
+                print(f"[!] Auto-advance failed: {e}")
+
+            # 4) Nothing else to do â†’ open interactive console
+            print("[+] Enter a command (/exec <quest|file> [step] [continue], /resume, or 'exit' to quit.)")
+            while True:
+                user_cmd = input("> ").strip()
+                if not user_cmd:
+                    continue
+                low = user_cmd.lower()
+                if low in ("exit", "quit"):
+                    print("[+] Exiting.")
+                    sys.exit(0)
+                if low.startswith("/resume"):
+                    _resume_from_saved_step()
+                    break
+                if low.startswith("/exec "):
+                    parts = user_cmd.split()
+                    target = parts[1] if len(parts) >= 2 else ""
+                    step_arg = parts[2] if len(parts) >= 3 else None
+                    cont_arg = parts[3] if len(parts) >= 4 else None
+
+                    new_file = resolve_file_path(f"{target}.json") or resolve_file_path(target) or target
+                    if not _exists_any(new_file):
+                        print(f"[!] /exec: could not resolve '{target}' via assets/files.json")
+                        continue
+
+                    try:
+                        step_num = int(step_arg) if (step_arg is not None and str(step_arg).isdigit()) else 1
+                    except Exception:
+                        step_num = 1
+                    if step_num <= 0:
+                        step_num = 1
+
+                    current_file = new_file
+                    data = load_json(current_file)
+                    current_step = step_num
+
+                    # Update progress.json current pointer and save step
+                    qk = os.path.splitext(os.path.basename(current_file))[0].lower()
+                    globals().setdefault("manifest_list", manifest_list)
+                    save_progress(current_file, current_step)
+
+                    cont = str(cont_arg or "").strip().lower()
+                    # Either way, we re-check the new file/step; console exits now
+                    break
+
+                # default: run a one-off chat command
+                data = {"1": [ {"command": user_cmd} ]}
                 current_step = 1
+                # Re-check this synthetic step immediately
                 break
-            continue
-    current_step = min(next_keys)
+
+            continue  # re-check after /resume or /exec or custom command
+
+        # else: step exists later in file â†’ advance to it
+        current_step = min(next_keys)
+
+    # If we reached here, current_step is valid for current_file
+    break
 
 last_ocr_text = None
 last_ocr_region = None
@@ -1609,8 +1800,52 @@ while True:
     if str(current_step) not in data:
         next_keys = [k for k in step_keys if k >= current_step]
         if not next_keys:
-            # No more steps in this file → open interactive console
+            # No more steps in this file → mark completed, return via stack if any,
+            # else auto-advance to next incomplete quest; only open console if none exist.
             print(f"[+] Finished {os.path.basename(current_file)} at step {current_step-1}.")
+
+            # 1) Mark this quest completed in progress.json
+            try:
+                _root = _progress_load_root()
+                _q = _quest_key_for_path(current_file)
+                _src = _quest_source_for(_q, manifest_list)
+                if _src == "shared":
+                    _root.setdefault("shared", {}).setdefault(_q, {})["completed"] = True
+                else:
+                    _root.setdefault("jobs", {}).setdefault(selected_class, {}).setdefault(_q, {})["completed"] = True
+                _progress_save_root(_root)
+            except Exception as e:
+                print(f"[!] Failed to mark quest completed: {e}")
+
+            # 2) If we arrived here via goto, POP and return to the caller
+            if GOTO_STACK:
+                ret_file, ret_step = GOTO_STACK.pop()
+                try:
+                    data = load_json(ret_file)
+                    current_file = ret_file
+                    current_step = int(ret_step)
+                    # Update current pointer
+                    _root = _progress_load_root()
+                    _root.setdefault("current", {})
+                    _root["current"].update({
+                        "job": selected_class,
+                        "quest": _quest_key_for_path(current_file),
+                        "step": current_step
+                    })
+                    _progress_save_root(_root)
+                    print(f"[*] Returning to {os.path.basename(current_file)} at step {current_step} (via goto stack).")
+                except Exception as e:
+                    print(f"[!] Failed to return to caller: {e}")
+                continue  # re-check with returned file/step
+
+            # 3) Otherwise auto-advance to the next incomplete quest from the manifest
+            try:
+                if _auto_advance_to_next_incomplete():
+                    continue  # switched file/step
+            except Exception as e:
+                print(f"[!] Auto-advance failed: {e}")
+
+            # 4) Nothing else to do → open interactive console
             print("[+] Enter a command (e.g. '/exec <quest|file> [step]' or '/resume'), or 'exit' to quit.")
             while True:
                 user_cmd = input("> ").strip()
@@ -1621,7 +1856,7 @@ while True:
                     print("[+] Exiting.")
                     exit(0)
                 if low.startswith("/resume"):
-                    # leave current_file/current_step as-is; re-scan steps next loop
+                    _resume_from_saved_step()
                     break
                 if low.startswith("/exec "):
                     parts = user_cmd.split()
@@ -1629,48 +1864,31 @@ while True:
                     step_arg = parts[2] if len(parts) >= 3 else None
                     cont_arg = parts[3] if len(parts) >= 4 else None
 
-                    # Allow forms:
-                    #   /exec 568_close_to_home
-                    #   /exec 568_close_to_home 2
-                    #   /exec 568_close_to_home 2 true   (or "continue"/"yes"/"1")
-                    #   /exec assets/quests/.../foo.json 3 continue
                     new_file = resolve_file_path(f"{target}.json") or resolve_file_path(target) or target
                     if not _exists_any(new_file):
                         print(f"[!] /exec: could not resolve '{target}' via assets/files.json")
                         continue
 
-                    # Normalize step
                     try:
                         step_num = int(step_arg) if (step_arg is not None and str(step_arg).isdigit()) else 1
                     except Exception:
                         step_num = 1
                     if step_num <= 0: step_num = 1
 
-                    # Update runtime
                     current_file = new_file
                     data = load_json(current_file)
                     current_step = step_num
 
-                    # Update progress.json current pointer and saved step
-                    qk = os.path.splitext(os.path.basename(current_file))[0].lower()
-                    # ensure the manifest is accessible for source detection
+                    # Save progress and update current pointer
                     globals().setdefault("manifest_list", manifest_list)
-                    # save progress for this step (does not mark completed)
                     save_progress(current_file, current_step)
-
-                    # Optional “continue” flag to auto-resume
-                    cont = str(cont_arg or "").strip().lower()
-                    if cont in ("true", "yes", "1", "continue"):
-                        # just break out of console and let the main loop run
-                        pass
-                    # otherwise we still break out of console; main loop will run from the chosen file/step
                     break
 
-                # default: run as one-off chat command
-                data = {"1": [ {"command": user_cmd} ]}
+                # default: run one-off chat
+                data = {"1": [{"command": user_cmd}]}
                 current_step = 1
                 break
-            continue
+            continue  # re-check after console
         current_step = min(next_keys)
 
     step_list = data[str(current_step)]
@@ -1731,7 +1949,7 @@ while True:
 
             total = len(legs)
             for i, (coord_str, timeout_ms, tolerance) in enumerate(legs, start=1):
-                print(f"  [*] vnav leg {i}/{total} → {coord_str} (tolerance={tolerance})")
+                print(f"  [*] vnav leg {i}/{total} â†’ {coord_str} (tolerance={tolerance})")
                 ok = vnav_go(coord_str, timeout_ms, tolerance, keymap)
                 if not ok:
                     print(f"[!] vnav leg {i}/{total} failed; aborting remaining legs.")
@@ -1779,7 +1997,7 @@ while True:
 
                 total = len(legs)
                 for i, (coord_str, timeout_ms, tolerance) in enumerate(legs, start=1):
-                    print(f"  [*] From {map_name}: vnav leg {i}/{total} → {coord_str} (tolerance={tolerance})")
+                    print(f"  [*] From {map_name}: vnav leg {i}/{total} â†’ {coord_str} (tolerance={tolerance})")
                     ok = vnav_go(coord_str, timeout_ms, tolerance, keymap)
                     if not ok:
                         print(f"[!] vnav leg {i}/{total} failed; aborting remaining legs for {poi_key}.")
@@ -1801,7 +2019,7 @@ while True:
                     print(f"[!] {e}")
                     continue
 
-                print(f"  [*] From {map_name}: destination check → {coord_str} (tolerance={tolerance})")
+                print(f"  [*] From {map_name}: destination check â†’ {coord_str} (tolerance={tolerance})")
                 wait_until_near(coord_str, timeout_ms, tolerance)
                 continue
 
@@ -1840,7 +2058,7 @@ while True:
             continue
 
         elif "goto" in step:
-            goto_val = step["goto"]  # supports: 568  |  "568_close_to_home"  |  "…json"  |  [fileOrKeyOrId, step]
+            goto_val = step["goto"]  # supports: 568  |  "568_close_to_home"  |  "â€¦json"  |  [fileOrKeyOrId, step]
             target_key = None
             explicit_step = None
             target_path = None
@@ -1868,30 +2086,24 @@ while True:
                 b = os.path.basename(str(s)).lower()
                 return b[:-5] if b.endswith(".json") else b
 
-            # Parse all supported forms
+            # Parse supported forms
             if isinstance(goto_val, int):
-                # new form: { "goto": 568 }
                 target_key = str(goto_val)
             elif isinstance(goto_val, str):
-                # key or path
                 if _exists_any(goto_val):
-                    target_path = _to_abs(goto_val)
-                    target_key = _stem(goto_val)
+                    target_path = _to_abs(goto_val); target_key = _stem(goto_val)
                 else:
                     target_key = _stem(goto_val)
             elif isinstance(goto_val, (list, tuple)) and len(goto_val) >= 1:
                 g0 = goto_val[0]
                 if len(goto_val) >= 2:
-                    try:
-                        explicit_step = int(goto_val[1])
-                    except Exception:
-                        explicit_step = None
+                    try: explicit_step = int(goto_val[1])
+                    except Exception: explicit_step = None
                 if isinstance(g0, int):
                     target_key = str(g0)
                 elif isinstance(g0, str):
                     if _exists_any(g0):
-                        target_path = _to_abs(g0)
-                        target_key = _stem(g0)
+                        target_path = _to_abs(g0); target_key = _stem(g0)
                     else:
                         target_key = _stem(g0)
                 else:
@@ -1901,33 +2113,28 @@ while True:
                 print("[!] goto: unsupported format.")
                 continue
 
-            # Resolve target path via registry helper first, then by key, then by numeric-id scan
+            # Resolve target path via helper/key; numeric-id fallback via registry
             if not target_path and target_key:
                 try:
-                    # resolve_quest_target(key) → (full_path, quest_key)
-                    res = resolve_quest_target(target_key)
+                    res = resolve_quest_target(target_key)  # â†’ (full_path, quest_key) if available
                     if isinstance(res, tuple) and len(res) >= 1:
                         target_path = res[0]
                         if len(res) >= 2 and res[1]:
                             target_key = res[1]
                 except Exception:
                     target_path = None
-
                 if not target_path:
                     target_path = resolve_file_path(f"{target_key}.json") or resolve_file_path(target_key)
-
-                # NEW: numeric id fallback (e.g., 253 → 253_way_of_the_gladiator.json)
                 if not target_path and str(target_key).isdigit():
                     _load_asset_indices()
                     kid = str(target_key)
-                    # Match exact "<id>.json" or "<id>_*"
                     matches = [k for k in ASSET_FILE_INDEX.keys()
-                            if k == f"{kid}.json" or k.startswith(f"{kid}_")]
+                               if k == f"{kid}.json" or k.startswith(f"{kid}_")]
                     if matches:
-                        chosen = sorted(matches)[0]  # deterministic pick
+                        chosen = sorted(matches)[0]
                         target_path = _assets_fullpath(ASSET_FILE_INDEX[chosen])
                         target_key = os.path.splitext(os.path.basename(chosen))[0].lower()
-                        print(f"[*] goto: id {kid} → {target_key} → {target_path}")
+                        print(f"[*] goto: id {kid} â†’ {target_key} â†’ {target_path}")
 
             if not target_path:
                 print(f"[!] GOTO target not found: {goto_val!r}")
@@ -1944,23 +2151,24 @@ while True:
                 except Exception:
                     next_step = 1
 
-            print(f"[*] GOTO requested → {target_path}, step {next_step}")
+            print(f"[*] GOTO requested â†’ {target_path}, step {next_step}")
 
             # Save progress of the step we just performed in the current file
             save_progress(current_file, current_step)
 
-            # Mark the current quest completed in progress.json
+            # PUSH return frame: resume at the **next defined step** in the caller
+            ret_step = int(current_step) + 1
             try:
-                _root = _progress_load_root()
-                _q = _quest_key_for_path(current_file)
-                _src = _quest_source_for(_q, manifest_list)
-                if _src == "shared":
-                    _root.setdefault("shared", {}).setdefault(_q, {})["completed"] = True
-                else:
-                    _root.setdefault("jobs", {}).setdefault(selected_class, {}).setdefault(_q, {})["completed"] = True
-                _progress_save_root(_root)
-            except Exception as e:
-                print(f"[!] Failed to mark quest completed: {e}")
+                cur_data = load_json(current_file)
+                if isinstance(cur_data, dict):
+                    ks = sorted(int(k) for k in cur_data.keys())
+                    nxt = next((s for s in ks if s > int(current_step)), None)
+                    if nxt is not None:
+                        ret_step = int(nxt)
+            except Exception:
+                pass
+            GOTO_STACK.append((current_file, int(ret_step)))
+            print(f"[*] goto: pushed return â†’ {os.path.basename(current_file)} step {ret_step}")
 
             # Switch file and set requested step
             current_file = target_path
@@ -1989,12 +2197,26 @@ while True:
             break
     
     save_progress(current_file, current_step)
-    current_step += 1
 
-    # After finishing ALL items in this step_list:
+    # If a goto switched files, don't advance here.
     if goto_triggered:
-        # the while-loop restarts with the new file/step
-        continue
+        goto_triggered = False
+    else:
+        try:
+            # Find the next numeric step key present in this file
+            _keys_now = sorted(int(k) for k in data.keys())
+            _next_defined = next((k for k in _keys_now if k > int(current_step)), None)
+            if _next_defined is not None:
+                current_step = int(_next_defined)
+            else:
+                # No further defined steps; let the top-of-loop "no more steps" handler deal with it
+                current_step = int(current_step) + 1
+        except Exception:
+            # Safe fallback
+            current_step = int(current_step) + 1
+
+    # Go straight to next iteration so the loop re-evaluates with the new step
+    continue
     
     # Check if this step_list was a pure goto-only step
     only_goto = all(isinstance(s, dict) and "goto" in s for s in step_list)
@@ -2009,58 +2231,90 @@ while True:
 
     # If this was the last step in the current file, drop into interactive mode
     if current_step == max(step_keys):
-        print(f"[+] Finished {os.path.basename(current_file)} at step {current_step}.")
-        print("[+] Enter a command (/exec <file> [step] [continue], /resume, or 'exit' to quit.)")
+            print(f"[+] Finished {os.path.basename(current_file)} at step {current_step}.")
 
-        while True:
-            user_cmd = input("> ").strip()
-            if not user_cmd:
+            # 1) Mark this quest completed in progress.json
+            try:
+                _root = _progress_load_root()
+                _q = _quest_key_for_path(current_file)
+                _src = _quest_source_for(_q, manifest_list)
+                if _src == "shared":
+                    _root.setdefault("shared", {}).setdefault(_q, {})["completed"] = True
+                else:
+                    _root.setdefault("jobs", {}).setdefault(selected_class, {}).setdefault(_q, {})["completed"] = True
+                _progress_save_root(_root)
+            except Exception as e:
+                print(f"[!] Failed to mark quest completed: {e}")
+
+            # 2) If we arrived here via goto, POP and return to the caller
+            if GOTO_STACK:
+                ret_file, ret_step = GOTO_STACK.pop()
+                try:
+                    data = load_json(ret_file)
+                    current_file = ret_file
+                    current_step = int(ret_step)
+                    # Update current pointer
+                    _root = _progress_load_root()
+                    _root.setdefault("current", {})
+                    _root["current"].update({
+                        "job": selected_class,
+                        "quest": _quest_key_for_path(current_file),
+                        "step": current_step
+                    })
+                    _progress_save_root(_root)
+                    print(f"[*] Returning to {os.path.basename(current_file)} at step {current_step} (via goto stack).")
+                except Exception as e:
+                    print(f"[!] Failed to return to caller: {e}")
                 continue
 
-            if user_cmd.lower() in ("exit", "quit"):
-                print("[+] Exiting.")
-                try: logwatch.stop()
-                except Exception: pass
-                exit(0)
+            # 3) Otherwise auto-advance to the next incomplete quest from the manifest
+            try:
+                if _auto_advance_to_next_incomplete():
+                    continue
+            except Exception as e:
+                print(f"[!] Auto-advance failed: {e}")
 
-            elif user_cmd.startswith("/exec") or user_cmd.startswith("/exe"):
-                parts = user_cmd.split()
-                if len(parts) >= 2:
-                    target_file = parts[1]
-                    target_step = int(parts[2]) if len(parts) >= 3 else 1
-                    do_continue = (parts[3].lower() == "true") if len(parts) >= 4 else True
-                    if os.path.exists(target_file):
-                        print(f"[*] EXEC requested → {target_file}, step {target_step}, continue={do_continue}")
-                        reload_jsons()
-                        current_file = target_file
-                        data = load_json(current_file)
-                        current_step = target_step
-                        if not do_continue:
-                            single_run_mode = True
-                        break
+            # 4) Nothing else to do → enter console
+            print("[+] Enter a command (/exec <file> [step] [continue], /resume, or 'exit' to quit.)")
+            while True:
+                user_cmd = input("> ").strip()
+                if not user_cmd:
+                    continue
+
+                if user_cmd.lower() in ("exit", "quit"):
+                    print("[+] Exiting.")
+                    exit(0)
+
+                elif user_cmd.startswith("/exec") or user_cmd.startswith("/exe"):
+                    parts = user_cmd.split()
+                    if len(parts) >= 2:
+                        target_file = parts[1]
+                        target_step = int(parts[2]) if len(parts) >= 3 else 1
+                        do_continue = (parts[3].lower() == "true") if len(parts) >= 4 else True
+                        if os.path.exists(target_file):
+                            print(f"[*] EXEC requested → {target_file}, step {target_step}, continue={do_continue}")
+                            reload_jsons()
+                            current_file = target_file
+                            data = load_json(current_file)
+                            current_step = target_step
+                            if not do_continue:
+                                single_run_mode = True
+                            break
+                        else:
+                            print(f"[!] EXEC file not found: {target_file}")
                     else:
-                        print(f"[!] EXEC file not found: {target_file}")
-                else:
-                    print("[!] Usage: /exec <file> [step] [continue]")
+                        print("[!] Usage: /exec <file> [step] [continue]")
 
-            elif user_cmd.startswith("/resume"):
-                print("[*] RESUME requested.")
-                saved_step = load_progress(current_file)
-                if saved_step:
-                    reload_jsons()
-                    current_step = saved_step + 1
-                    data = load_json(current_file)
+                elif user_cmd.startswith("/resume"):
+                    _resume_from_saved_step()
+
+                else:
+                    # Treat as regular chat command
+                    print(f"  [*] Sending chat command: {user_cmd}")
+                    send_chat_command(user_cmd, keymap)
                     break
-                else:
-                    print("[!] No saved progress to resume from.")
 
-            else:
-                # Treat as regular chat command
-                print(f"  [*] Sending chat command: {user_cmd}")
-                send_chat_command(user_cmd, keymap)
-                break
-
-        continue
+            continue
 
     # Then advance to the next step for execution (but do not save it yet)
     current_step += 1

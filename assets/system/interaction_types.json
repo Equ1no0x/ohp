@@ -144,7 +144,7 @@
 		{ "command": "confirm" },
 		{ "rand": [4000, 5000] },
 		{ "img_search": "quest_yes.png" },
-		{ "await": [1000, "img", true, "", 2500, false] },
+		{ "await": [1000, "img", true, "", 30000, false] },
 		{ "mouse_move": "move_to" },
 		{ "rand": [222, 333] },
 		{ "command": "short_lclick" }

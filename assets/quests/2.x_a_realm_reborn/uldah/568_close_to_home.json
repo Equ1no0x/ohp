@@ -75,13 +75,21 @@
 	],
 	"15": [
 		{ "interaction_type": ["use_aethernet_shard", {"name": "Gladiators' Guild"}] },
-		{ "map": "uldah", "location": "gladiators_guild_tp" }
+		{ "destination": ["-53.148 10 10.668", -1, 5] }
 	],
 	"16": [
 		{ "goto": [253, 1] }
 	],
 	"17": [
-		{ "map": "uldah", "location": "adventurers_guild_as" },
-		{ "interaction_type": ["use_aethernet_shard", {"name": "Adventurers' Guild"}] }
+		{ "map": "uldah", "location": "gladiators_guild_as" },
+		{ "interaction_type": ["use_aethernet_shard", {"name": "Adventurers' Guild"}] },
+		{ "destination": ["66.239 4 -117.976", -1, 5] }
+	],
+	"18": [
+		{ "map": "uldah", "npc": "momodi" },
+		{ "interaction_type": ["npc_interact", {"name": "Momodi"}] }
+	],
+	"19": [
+		{ "comment": "End of quest file" }
 	]
 }
