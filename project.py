@@ -389,12 +389,16 @@ STOPWORDS_COMMON = {
     'the', 'a', 'an', 'to', 'for', 'with', 'and', 'or', 'you', 'your', 'from', 'at', 'on', 'in', 'it', 'is', 'are', 'was', 'were', 'of', 'this', 'that', 'these', 'those'
 }
 
+CONSOLE_PROMPT = "[+] Enter a command (e.g. '/exec <quest|file> [step]' or '/resume'), or 'exit' to quit."
+
+
 def _normalize_chat_text(s: str) -> str:
     s = (s or "").lower()
     s = s.translate({0x2019: ord("'"), 0x2018: ord("'"), 0x0060: ord("'")})
     s = re.sub(r'[.]+$', '', s)
     s = re.sub(r'\s+', ' ', s).strip()
     return s
+
 
 def _important_tokens(text: str) -> set[str]:
     tokens = [tok for tok in text.split() if tok and tok not in STOPWORDS_COMMON]
@@ -836,6 +840,10 @@ def _finalize_current_quest(last_step: int, prompt: str) -> None:
     except Exception as exc:
         print(f"[!] Auto-advance failed: {exc}")
     _interactive_console_loop(prompt)
+
+def _finalize_and_prompt(last_step: int) -> bool:
+    _finalize_current_quest(last_step, CONSOLE_PROMPT)
+    return True
 
 def execute_command_sequence(macro_array, keymap, command_text=None):
     _ = command_text  # preserved for compatibility
@@ -1814,8 +1822,8 @@ while True:
             # No more steps in this file â†’ mark completed, return via stack if any,
             # else auto-advance to next incomplete quest; only open console if none exist.
             last_completed = current_step - 1
-            _finalize_current_quest(last_completed, "[+] Enter a command (e.g. '/exec <quest|file> [step]' or '/resume'), or 'exit' to quit.")
-            continue
+            if _finalize_and_prompt(last_completed):
+                continue
 
         # else: step exists later in file â†’ advance to it
         current_step = min(next_keys)
@@ -1846,8 +1854,8 @@ while True:
             # No more steps in this file → mark completed, return via stack if any,
             # else auto-advance to next incomplete quest; only open console if none exist.
             last_completed = current_step - 1
-            _finalize_current_quest(last_completed, "[+] Enter a command (e.g. '/exec <quest|file> [step]' or '/resume'), or 'exit' to quit.")
-            continue
+            if _finalize_and_prompt(last_completed):
+                continue
 
         current_step = min(next_keys)
 
@@ -2097,7 +2105,7 @@ while True:
 
     # If this was the last step in the current file, drop into interactive mode
     if current_step == max(step_keys):
-            _finalize_current_quest(current_step, "[+] Enter a command (e.g. '/exec <quest|file> [step]' or '/resume'), or 'exit' to quit.")
+        if _finalize_and_prompt(current_step):
             continue
 
     # Then advance to the next step for execution (but do not save it yet)
