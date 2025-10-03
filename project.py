@@ -18,6 +18,8 @@ import sys
 # Default success patterns for vnav path completion
 VNAV_SUCCESS_PATTERNS = ["[INF] [vnavmesh] Pathfinding complete"]
 
+PROGRESS_STATE_FILE = PROGRESS_STATE_FILE
+
 # === Suppress console popup for Tesseract subprocess on Windows ===
 _original_popen = subprocess.Popen
 
@@ -777,55 +779,79 @@ def _return_to_goto_caller() -> bool:
         return False
     ret_file, ret_step = GOTO_STACK.pop()
     try:
-        current_file = new_file
-        data = load_json(current_file)
-        current_step = step_num
-        # Do NOT change progress['current'] when manually jumping
-        save_progress_quiet(current_file, current_step)
-        print(f"[*] Returning to {os.path.basename(current_file)} at step {current_step} (via goto stack).")
+        data = load_json(ret_file)
+        current_file = ret_file
+        current_step = int(ret_step)
+        _set_current_pointer_state(current_file, current_step)
+        print(f'[*] Returning to {os.path.basename(current_file)} at step {current_step} (via goto stack).')
         return True
     except Exception as exc:
-        print(f"[!] Failed to return to caller: {exc}")
+        print(f'[!] Failed to return to caller: {exc}')
         return False
+
+def _classify_console_command(raw: str):
+    cmd = raw.strip()
+    if not cmd:
+        return 'empty', cmd
+    low = cmd.lower()
+    if low in ('exit', 'quit'):
+        return 'exit', cmd
+    if low.startswith('/resume'):
+        return 'resume', cmd
+    if low.startswith('/exec') or low.startswith('/exe'):
+        return 'exec', cmd
+    return 'chat', cmd
+
+def _resolve_exec_command(command: str):
+    parts = command.split()
+    if len(parts) < 2:
+        print('[!] Usage: /exec <quest|file> [step] [continue]')
+        return None
+    target = parts[1]
+    step_arg = parts[2] if len(parts) >= 3 else None
+    cont_arg = parts[3] if len(parts) >= 4 else None
+    path_candidate = resolve_file_path(f"{target}.json") or resolve_file_path(target) or target
+    if not _exists_any(path_candidate):
+        print(f"[!] /exec: could not resolve '{target}' via assets/files.json")
+        return None
+    try:
+        step_num = int(step_arg) if (step_arg is not None and str(step_arg).isdigit()) else 1
+    except Exception:
+        step_num = 1
+    if step_num <= 0:
+        step_num = 1
+    single_run = bool(cont_arg and str(cont_arg).lower() in {'false', '0', 'no'})
+    return path_candidate, step_num, single_run
+
 
 def _interactive_console_loop(prompt: str) -> None:
     global current_file, current_step, data, single_run_mode
     print(prompt)
     while True:
-        user_cmd = input("> ").strip()
-        if not user_cmd:
+        user_cmd = input('> ').strip()
+        kind, payload = _classify_console_command(user_cmd)
+        if kind == 'empty':
             continue
-        low = user_cmd.lower()
-        if low in ("exit", "quit"):
-            print("[+] Exiting.")
+        if kind == 'exit':
+            print('[+] Exiting.')
             sys.exit(0)
-        if low.startswith("/resume"):
+        if kind == 'resume':
             _resume_from_saved_step()
             return
-        if low.startswith("/exec") or low.startswith("/exe"):
-            parts = user_cmd.split()
-            target = parts[1] if len(parts) >= 2 else ""
-            step_arg = parts[2] if len(parts) >= 3 else None
-            cont_arg = parts[3] if len(parts) >= 4 else None
-            new_file = resolve_file_path(f"{target}.json") or resolve_file_path(target) or target
-            if not _exists_any(new_file):
-                print(f"[!] /exec: could not resolve '{target}' via assets/files.json")
+        if kind == 'exec':
+            parsed = _resolve_exec_command(payload)
+            if not parsed:
                 continue
-            try:
-                step_num = int(step_arg) if (step_arg is not None and str(step_arg).isdigit()) else 1
-            except Exception:
-                step_num = 1
-            if step_num <= 0:
-                step_num = 1
+            new_file, step_num, single_run = parsed
             current_file = new_file
             data = load_json(current_file)
             current_step = step_num
             save_progress(current_file, current_step)
             _set_current_pointer_state(current_file, current_step)
-            if cont_arg is not None and str(cont_arg).lower() in {"false", "0", "no"}:
+            if single_run:
                 single_run_mode = True
             return
-        data = {"1": [{"command": user_cmd}]}
+        data = {'1': [{'command': payload}]}
         current_step = 1
         return
 
@@ -878,12 +904,12 @@ def _quest_source_for(qkey: str, manifest_list) -> str:
 
 def _progress_load_root() -> dict:
     try:
-        return load_json("progress.json") or {}
+        return load_json(PROGRESS_STATE_FILE) or {}
     except Exception:
         return {}
 
 def _progress_save_root(root: dict) -> None:
-    p = resolve_file_path("progress.json") or "progress.json"
+    p = resolve_file_path(PROGRESS_STATE_FILE) or PROGRESS_STATE_FILE
     with open(p, "w", encoding="utf-8") as f:
         json.dump(root, f, indent=2)
 
@@ -1607,9 +1633,9 @@ manifest_list = manifest_raw["quests"] if isinstance(manifest_raw, dict) and "qu
 )
 
 # --- Read progress.json via the registry and prepare helpers ---
-progress_path = resolve_file_path("progress.json") or "progress.json"
+progress_path = resolve_file_path(PROGRESS_STATE_FILE) or PROGRESS_STATE_FILE
 try:
-    progress = load_json("progress.json")
+    progress = load_json(PROGRESS_STATE_FILE)
 except Exception:
     progress = {}
 
