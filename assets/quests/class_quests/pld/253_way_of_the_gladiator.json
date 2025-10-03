@@ -16,5 +16,47 @@
 		{ "destination": ["21.857 7 -81.278", -1, 10] },
 		{ "comment": "Walk to Gate of Nald border" },
 		{ "map": "uldah", "location": "gate_of_nald" }
+	],
+	"5": [
+		{ "comment": "Waiting for Central Thanalan" },
+		{ "destination": ["-115.669 17.033 326.040", -1, 10] }
+	],
+	"6": [
+		{ "vnav": ["-116.106 10.801 276.979", -1, 10] },
+		{
+			"combat": {
+				"region": "750, 31, 1190, 52",
+				"names": ["Star Marmot", "Huge Hornet"],
+				"counts": [3, 3]
+			}
+		}
+	],
+	"7": [
+		{ "comment": "Closing tutorials" },
+		{ "interaction_type": ["open_tutorial"] },
+		{ "interaction_type": ["close_tutorial"] },
+		{ "interaction_type": ["open_tutorial"] },
+		{ "interaction_type": ["close_tutorial"] },
+		{ "interaction_type": ["open_tutorial"] },
+		{ "interaction_type": ["close_tutorial"] },
+		{ "interaction_type": ["open_tutorial"] },
+		{ "interaction_type": ["close_tutorial"] }
+	],
+	"8": [
+		{ "vnav": ["17.391 5.925 296.552", -1, 10] },
+		{
+			"combat": {
+				"region": "750, 31, 1190, 52",
+				"names": ["Snapping Shrew"],
+				"counts": [3]
+			}
+		}
+	],
+	"9": [
+		{ "comment": "Closing tutorials" },
+		{ "interaction_type": ["open_tutorial"] },
+		{ "interaction_type": ["close_tutorial"] },
+		{ "comment": "Walk to Gate of Nald border" },
+		{ "map": "central_thanalan", "location": "gate_of_nald" }
 	]
 }

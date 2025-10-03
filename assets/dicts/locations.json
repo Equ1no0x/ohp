@@ -17,7 +17,7 @@
 		"alchemists_guild_tp": { "vnav": ["-100.714 41 88.628"] },
 		"thaumaturges_guild_as": { "vnav": ["-154.724 14.005 71.020"] },
 		"steps_of_thal_1": { "vnav": ["95.433 4 -105.263"] },
-		"gate_of_nald": { "vnav": ["45.130 3.889 -166.519"] }
+		"gate_of_nald": { "vnav": ["45.130 3.889 -166.519", -1, 5] }
 	},
 	"uldah_airship_landing": {
 		"gangplank": { "vnav": ["-44.154 84 -0.479"] }
@@ -29,7 +29,7 @@
 		"exit": { "vnav": ["0.038 0.013 5.777"] }
 	},
 	"central_thanalan": {
-		"gate_of_nald": { "vnav": ["-118.175 18.353 341.303"] },
+		"gate_of_nald": { "vnav": ["-118.175 18.353 341.303", -1, 5] },
 		"black_brush_aetheryte": { "vnav": ["-16.764 -1.878 -163.592"] },
 		"western_thanalan": { "vnav": ["-407.107 -1.888 101.671"] }
 	},

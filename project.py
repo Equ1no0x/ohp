@@ -385,12 +385,21 @@ def perform_img_search(template_path, threshold=0.8):
         return False
 
 # --- Fuzzy OCR for chat lines (case-insensitive, punctuation-tolerant) ---
+STOPWORDS_COMMON = {
+    'the', 'a', 'an', 'to', 'for', 'with', 'and', 'or', 'you', 'your', 'from', 'at', 'on', 'in', 'it', 'is', 'are', 'was', 'were', 'of', 'this', 'that', 'these', 'those'
+}
+
 def _normalize_chat_text(s: str) -> str:
     s = (s or "").lower()
-    s = s.replace("â€™", "'").replace("â€˜", "'")  # unify apostrophes
-    s = re.sub(r"[\.â€¦]+$", "", s)              # drop trailing dots (OCR often misses them)
-    s = re.sub(r"\s+", " ", s).strip()
+    s = s.translate({0x2019: ord("'"), 0x2018: ord("'"), 0x0060: ord("'")})
+    s = re.sub(r'[.]+$', '', s)
+    s = re.sub(r'\s+', ' ', s).strip()
     return s
+
+def _important_tokens(text: str) -> set[str]:
+    tokens = [tok for tok in text.split() if tok and tok not in STOPWORDS_COMMON]
+    return set(tokens)
+
 
 def perform_ocr_find_text_fuzzy(target_text: str, region=None, threshold: float = 0.90,
                                 ocr_timeout_sec: float | None = None) -> bool:
@@ -398,6 +407,7 @@ def perform_ocr_find_text_fuzzy(target_text: str, region=None, threshold: float 
     global last_ocr_match_center, last_detection_type
 
     target_norm = _normalize_chat_text(target_text)
+    target_tokens = _important_tokens(target_norm)
     print(f"[*] Performing FUZZY OCR looking for (~{int(threshold*100)}%): '{target_norm}'")
 
     screenshot = ImageGrab.grab(bbox=region)
@@ -408,11 +418,17 @@ def perform_ocr_find_text_fuzzy(target_text: str, region=None, threshold: float 
     match = _locate_fuzzy_ocr_match(lines, target_norm, threshold)
     if match:
         ratio, center, matched_text = match
-        last_ocr_match_center = center
-        last_detection_type = "ocr"
-        print(f"[*] Fuzzy match {ratio:.1%} for '{target_norm}' ~ '{matched_text}' at {center}")
-        return True
-
+        matched_norm = _normalize_chat_text(matched_text)
+        matched_tokens = _important_tokens(matched_norm)
+        if target_tokens and not target_tokens.issubset(matched_tokens):
+            if OCR_DEBUG_DUMP:
+                missing = sorted(target_tokens - matched_tokens)
+                print(f"[dbg][ocr] rejecting fuzzy hit; missing tokens {missing}")
+        else:
+            last_ocr_match_center = center
+            last_detection_type = "ocr"
+            print(f"[*] Fuzzy match {ratio:.1%} for '{target_norm}' ~ '{matched_text}' at {center}")
+            return True
     best_ratio = _best_fuzzy_ratio(lines, target_norm)
     try:
         _dump_ocr_debug(results, region, target_norm)
@@ -757,10 +773,11 @@ def _return_to_goto_caller() -> bool:
         return False
     ret_file, ret_step = GOTO_STACK.pop()
     try:
-        data = load_json(ret_file)
-        current_file = ret_file
-        current_step = int(ret_step)
-        _set_current_pointer_state(current_file, current_step)
+        current_file = new_file
+        data = load_json(current_file)
+        current_step = step_num
+        # Do NOT change progress['current'] when manually jumping
+        save_progress_quiet(current_file, current_step)
         print(f"[*] Returning to {os.path.basename(current_file)} at step {current_step} (via goto stack).")
         return True
     except Exception as exc:
@@ -1745,19 +1762,38 @@ def _auto_advance_to_next_incomplete() -> bool:
         # Switch to that quest
         current_file = qp
         data = load_json(current_file)
-        step_saved = load_progress(current_file)
-        current_step = int(step_saved) if isinstance(step_saved, int) and step_saved > 0 else 1
+        current_step = 1  # always start at 1 when auto-advancing after a finished quest
 
-        # Sync "current" pointer
         root.setdefault("current", {})
-        root["current"].update({"job": selected_class, "quest": qk, "step": current_step})
+        root["current"].update({"job": selected_class, "quest": qk, "step": 1})
         _progress_save_root(root)
         progress = root
-
-        print(f"[+] Next quest: {os.path.basename(current_file)} (step {current_step})")
+        print(f"[+] Next quest: {os.path.basename(current_file)} (step 1)")
         return True
 
     return False
+
+def save_progress_quiet(file_path: str, step: int) -> None:
+    """
+    Update jobs/shared step and completed=False for the given quest,
+    but DO NOT touch progress['current'].
+    """
+    qkey = _quest_key_for_path(file_path)
+    source = _quest_source_for(qkey, globals().get("manifest_list"))
+    root = _progress_load_root()
+
+    # ensure structure
+    root.setdefault("shared", {})
+    root.setdefault("jobs", {})
+    root["jobs"].setdefault(globals().get("selected_class", ""), {})
+
+    entry = {"completed": False, "step": int(step if step >= 1 else 1)}
+    if source == "shared":
+        root["shared"].setdefault(qkey, {}).update(entry)
+    else:
+        root["jobs"][globals().get("selected_class", "")].setdefault(qkey, {}).update(entry)
+
+    _progress_save_root(root)
 
 print(f"[+] Job file: {current_file}")
 
@@ -1982,133 +2018,49 @@ while True:
             continue
 
         elif "goto" in step:
-            goto_val = step["goto"]  # supports: 568  |  "568_close_to_home"  |  "â€¦json"  |  [fileOrKeyOrId, step]
-            target_key = None
-            explicit_step = None
-            target_path = None
+            # Normalize formats: 253 / "253_way..." / ["253_way...", 1] / [253, 1]
+            raw = step["goto"]
+            target_file, target_step = None, 1
 
-            # end-of-chain legacy marker: ["", 0] or [null, 0] or 0
-            if (isinstance(goto_val, (list, tuple)) and len(goto_val) >= 2 and not goto_val[0] and str(goto_val[1]) == "0") \
-               or (goto_val == 0):
-                # Save the just-executed step and mark current quest completed, then exit
-                save_progress(current_file, current_step)
-                try:
-                    _root = _progress_load_root()
-                    _q = _quest_key_for_path(current_file)
-                    _src = _quest_source_for(_q, manifest_list)
-                    if _src == "shared":
-                        _root.setdefault("shared", {}).setdefault(_q, {})["completed"] = True
-                    else:
-                        _root.setdefault("jobs", {}).setdefault(selected_class, {}).setdefault(_q, {})["completed"] = True
-                    _progress_save_root(_root)
-                except Exception:
-                    pass
-                print("[+] Reached end-of-chain marker. Exiting script.")
-                exit(0)
-
-            def _stem(s: str) -> str:
-                b = os.path.basename(str(s)).lower()
-                return b[:-5] if b.endswith(".json") else b
-
-            # Parse supported forms
-            if isinstance(goto_val, int):
-                target_key = str(goto_val)
-            elif isinstance(goto_val, str):
-                if _exists_any(goto_val):
-                    target_path = _to_abs(goto_val); target_key = _stem(goto_val)
-                else:
-                    target_key = _stem(goto_val)
-            elif isinstance(goto_val, (list, tuple)) and len(goto_val) >= 1:
-                g0 = goto_val[0]
-                if len(goto_val) >= 2:
-                    try: explicit_step = int(goto_val[1])
-                    except Exception: explicit_step = None
-                if isinstance(g0, int):
-                    target_key = str(g0)
-                elif isinstance(g0, str):
-                    if _exists_any(g0):
-                        target_path = _to_abs(g0); target_key = _stem(g0)
-                    else:
-                        target_key = _stem(g0)
-                else:
-                    print("[!] goto: unsupported target type in list.")
-                    continue
+            if isinstance(raw, list) and len(raw) >= 1:
+                target = raw[0]
+                target_step = int(raw[1]) if len(raw) >= 2 and str(raw[1]).isdigit() else 1
             else:
-                print("[!] goto: unsupported format.")
+                target = raw
+
+            # Resolve the target path (accept id, bare name, or full/relative path)
+            if isinstance(target, (int, str)):
+                tgt_str = str(target).strip()
+                # try id/name with/without .json via registry
+                target_file = resolve_file_path(f"{tgt_str}.json") or resolve_file_path(tgt_str) or tgt_str
+            else:
+                target_file = str(target)
+
+            if not _exists_any(target_file):
+                print(f"[!] GOTO target not found: {raw}")
                 continue
 
-            # Resolve target path via helper/key; numeric-id fallback via registry
-            if not target_path and target_key:
-                try:
-                    res = resolve_quest_target(target_key)  # â†’ (full_path, quest_key) if available
-                    if isinstance(res, tuple) and len(res) >= 1:
-                        target_path = res[0]
-                        if len(res) >= 2 and res[1]:
-                            target_key = res[1]
-                except Exception:
-                    target_path = None
-                if not target_path:
-                    target_path = resolve_file_path(f"{target_key}.json") or resolve_file_path(target_key)
-                if not target_path and str(target_key).isdigit():
-                    _load_asset_indices()
-                    kid = str(target_key)
-                    matches = [k for k in ASSET_FILE_INDEX.keys()
-                               if k == f"{kid}.json" or k.startswith(f"{kid}_")]
-                    if matches:
-                        chosen = sorted(matches)[0]
-                        target_path = _assets_fullpath(ASSET_FILE_INDEX[chosen])
-                        target_key = os.path.splitext(os.path.basename(chosen))[0].lower()
-                        print(f"[*] goto: id {kid} â†’ {target_key} â†’ {target_path}")
+            # IMPORTANT: save the SOURCE quest at current_step+1 to avoid re-running this step
+            # and DO NOT update progress['current'] to the target.
+            save_progress(current_file, int(current_step) + 1)
 
-            if not target_path:
-                print(f"[!] GOTO target not found: {goto_val!r}")
-                continue
+            # Push return frame so finishing the target can come back here at the next step
+            GOTO_STACK.append((current_file, int(current_step) + 1))
 
-            # Determine next step: explicit > saved > 1
-            if explicit_step is not None and explicit_step > 0:
-                next_step = explicit_step
-            else:
-                try:
-                    next_step = load_progress(target_path)
-                    if not isinstance(next_step, int) or next_step <= 0:
-                        next_step = 1
-                except Exception:
-                    next_step = 1
+            print(f"[*] GOTO → {target_file}, step {target_step}")
 
-            print(f"[*] GOTO requested â†’ {target_path}, step {next_step}")
-
-            # Save progress of the step we just performed in the current file
-            save_progress(current_file, current_step)
-
-            # PUSH return frame: resume at the **next defined step** in the caller
-            ret_step = int(current_step) + 1
-            try:
-                cur_data = load_json(current_file)
-                if isinstance(cur_data, dict):
-                    ks = sorted(int(k) for k in cur_data.keys())
-                    nxt = next((s for s in ks if s > int(current_step)), None)
-                    if nxt is not None:
-                        ret_step = int(nxt)
-            except Exception:
-                pass
-            GOTO_STACK.append((current_file, int(ret_step)))
-            print(f"[*] goto: pushed return â†’ {os.path.basename(current_file)} step {ret_step}")
-
-            # Switch file and set requested step
-            current_file = target_path
+            # Switch to target (no current-pointer update here)
+            current_file = target_file
             data = load_json(current_file)
-            current_step = int(next_step)
+            current_step = int(target_step) if int(target_step) > 0 else 1
 
-            # Update current pointer
-            _set_current_pointer_state(current_file, current_step)
-
-            # Reset OCR/IMG context on file switch
+            # Reset any transient detection state if you keep it
             last_ocr_text = None
             last_ocr_region = None
             last_img_template = None
 
-            goto_triggered = True
-            break
+            # Re-enter loop on the new file/step
+            continue
     
     save_progress(current_file, current_step)
 
