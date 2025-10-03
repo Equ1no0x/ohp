@@ -18,7 +18,6 @@ import sys
 # Default success patterns for vnav path completion
 VNAV_SUCCESS_PATTERNS = ["[INF] [vnavmesh] Pathfinding complete"]
 
-PROGRESS_STATE_FILE = PROGRESS_STATE_FILE
 
 # === Suppress console popup for Tesseract subprocess on Windows ===
 _original_popen = subprocess.Popen
@@ -397,7 +396,7 @@ CONSOLE_PROMPT = "[+] Enter a command (e.g. '/exec <quest|file> [step]' or '/res
 def _normalize_chat_text(s: str) -> str:
     s = (s or "").lower()
     s = s.translate({0x2019: ord("'"), 0x2018: ord("'"), 0x0060: ord("'")})
-    s = re.sub(r'[.]+$', '', s)
+    s = s.rstrip('.')
     s = re.sub(r'\s+', ' ', s).strip()
     return s
 
