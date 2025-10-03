@@ -58,5 +58,25 @@
 		{ "interaction_type": ["close_tutorial"] },
 		{ "comment": "Walk to Gate of Nald border" },
 		{ "map": "central_thanalan", "location": "gate_of_nald" }
+	],
+	"10": [
+		{ "comment": "Waiting to arrive at Uldah from Gate of Nald" },
+		{ "destination": ["40.064 4 -149.743", -1, 10] }
+	],
+	"11": [
+		{ "comment": "Accept Quest 595" },
+		{ "map": "uldah", "npc": "momodi" },
+		{ "interaction_type": ["npc_interact", {"name": "Momodi"}] }
+	],
+	"12": [
+		{ "map": "uldah", "location": "adventurers_guild_as" },
+		{ "interaction_type": ["use_aethernet_shard", {"name": "Gladiators' Guild"}] }
+	],
+	"13": [
+		{ "map": "uldah", "npc": "mylla" },
+		{ "interaction_type": ["npc_interact", {"name": "Mylla"}] }
+	],
+	"14": [
+		{ "comment": "End of quest file" }
 	]
 }

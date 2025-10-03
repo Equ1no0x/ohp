@@ -1,0 +1,24 @@
+{
+	"1": [
+		{ "comment": "Close tutorial windows" },
+		{ "interaction_type": ["open_tutorial"] },
+		{ "interaction_type": ["close_tutorial"] }
+	],
+	"2": [
+		{ "map": "uldah", "location": "gladiators_guild_as" },
+		{ "interaction_type": ["use_aethernet_shard", {"name": "Gate of Nald"}] }
+	],
+	"3": [
+		{ "comment": "Waiting for Gate of Nald TP" },
+		{ "destination": ["-123.759 15.804 311.594", -1, 5] },
+		{ "map": "central_thanalan", "npc": "papashan" },
+		{ "interaction_type": ["npc_interact", {"name": "papashan"}] }
+	],
+	"4": [
+		{ "comment": "Accept quest 671" },
+		{ "interaction_type": ["npc_interact", {"name": "Papashan"}] }
+	],
+	"5": [
+		{ "comment": "End of quest file" }
+	]
+}

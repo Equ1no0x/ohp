@@ -40,6 +40,8 @@ import difflib
 # Always resolve files relative to this script's directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+PROGRESS_STATE_FILE = "progress.json"
+
 def _to_abs(p: str) -> str:
     """Return absolute path; if relative, anchor at BASE_DIR."""
     return p if os.path.isabs(p) else os.path.join(BASE_DIR, p)
@@ -925,7 +927,7 @@ def _progress_load_root() -> dict:
         return {}
 
 def _progress_save_root(root: dict) -> None:
-    p = resolve_file_path(PROGRESS_STATE_FILE) or PROGRESS_STATE_FILE
+    p = resolve_file_path(PROGRESS_STATE_FILE) or _to_abs(PROGRESS_STATE_FILE)
     with open(p, "w", encoding="utf-8") as f:
         json.dump(root, f, indent=2)
 
@@ -1626,7 +1628,7 @@ manifest_list = manifest_raw["quests"] if isinstance(manifest_raw, dict) and "qu
 )
 
 # --- Read progress.json via the registry and prepare helpers ---
-progress_path = resolve_file_path(PROGRESS_STATE_FILE) or PROGRESS_STATE_FILE
+progress_path = resolve_file_path(PROGRESS_STATE_FILE) or _to_abs(PROGRESS_STATE_FILE)
 try:
     progress = load_json(PROGRESS_STATE_FILE)
 except Exception:
@@ -1732,11 +1734,9 @@ def _resume_from_saved_step() -> bool:
     next_defined = next((k for k in keys if k > baseline), None)
 
     if next_defined is None:
-        # Nothing new in this quest → try the next incomplete quest from manifest
+        if baseline > 0:
+            _mark_quest_completed(current_file, baseline)
         return _auto_advance_to_next_incomplete()
-
-    # There is a new step → ensure this quest is NOT marked completed
-    root = _progress_load_root()
     qkey = _quest_key_for_path(current_file)
     src  = _quest_source_for(qkey, manifest_list)
     if src == "shared":

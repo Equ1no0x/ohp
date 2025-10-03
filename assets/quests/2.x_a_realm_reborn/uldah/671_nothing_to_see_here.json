@@ -1,0 +1,12 @@
+{
+	"1": [
+		{ "comment": "Interact with Serious Sultansworn" },
+		{ "vnav": ["126.278 14.537 277.576", 15000, 2] },
+		{ "interaction_type": ["npc_interact", {"name": "Sultansworn"}] }
+	],
+	"2": [
+		{ "comment": "Interact with Sultansworn" },
+		{ "vnav": ["90.991 4.635 423.416", 35000, 2] },
+		{ "interaction_type": ["npc_interact", {"name": "Sultansworn"}] }
+	]
+}
