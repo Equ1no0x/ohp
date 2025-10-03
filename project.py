@@ -1846,8 +1846,7 @@ while True:
         if not next_keys:
             # No more steps in this file â†’ mark completed, return via stack if any,
             # else auto-advance to next incomplete quest; only open console if none exist.
-            last_completed = current_step - 1
-            if _finalize_and_prompt(last_completed):
+            if _finalize_and_prompt(current_step - 1):
                 continue
 
         # else: step exists later in file â†’ advance to it
@@ -1878,8 +1877,7 @@ while True:
         if not next_keys:
             # No more steps in this file → mark completed, return via stack if any,
             # else auto-advance to next incomplete quest; only open console if none exist.
-            last_completed = current_step - 1
-            if _finalize_and_prompt(last_completed):
+            if _finalize_and_prompt(current_step - 1):
                 continue
 
         current_step = min(next_keys)
