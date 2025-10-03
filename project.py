@@ -747,30 +747,47 @@ def _set_current_pointer_state(file_path: str, step: int) -> None:
         root['current'].update({
             'job': selected_class,
             'quest': _quest_key_for_path(file_path),
-            'step': int(step)
+            'step': int(step),
         })
         _progress_save_root(root)
         progress = root
     except Exception:
         pass
 
-def _mark_quest_completed(file_path: str, last_step: int | None) -> None:
+def _write_progress_entry(file_path: str, step: int, *, completed: bool, update_current: bool) -> None:
     global progress
     try:
-        root = _progress_load_root()
-        quest_key = _quest_key_for_path(file_path)
-        source = _quest_source_for(quest_key, manifest_list)
-        if source == 'shared':
-            entry = root.setdefault('shared', {}).setdefault(quest_key, {})
-        else:
-            entry = root.setdefault('jobs', {}).setdefault(selected_class, {}).setdefault(quest_key, {})
-        entry['completed'] = True
-        if last_step is not None:
-            entry['step'] = int(last_step)
-        _progress_save_root(root)
-        progress = root
-    except Exception as exc:
-        print(f"[!] Failed to mark quest completed: {exc}")
+        step_value = int(step)
+    except Exception:
+        step_value = 1
+    if step_value <= 0:
+        step_value = 1
+    root = _progress_load_root()
+    quest_key = _quest_key_for_path(file_path)
+    source = _quest_source_for(quest_key, globals().get('manifest_list'))
+    if source == 'shared':
+        entry = root.setdefault('shared', {}).setdefault(quest_key, {})
+    else:
+        entry = root.setdefault('jobs', {}).setdefault(selected_class, {}).setdefault(quest_key, {})
+    entry['completed'] = bool(completed)
+    entry['step'] = step_value
+    if update_current:
+        root.setdefault('current', {})
+        root['current'].update({'job': selected_class, 'quest': quest_key, 'step': step_value})
+    _progress_save_root(root)
+    progress = root
+
+def _mark_quest_completed(file_path: str, last_step: int | None) -> None:
+    step_value = last_step
+    try:
+        if step_value is None:
+            step_value = load_progress(file_path)
+        step_value = int(step_value)
+    except Exception:
+        step_value = 1
+    if step_value <= 0:
+        step_value = 1
+    _write_progress_entry(file_path, step_value, completed=True, update_current=False)
 
 def _return_to_goto_caller() -> bool:
     global current_file, current_step, data
@@ -927,30 +944,7 @@ def load_progress(file_path: str) -> int:
         return 1
 
 def save_progress(file_path: str, step: int) -> None:
-    qkey = _quest_key_for_path(file_path)
-    source = _quest_source_for(qkey, globals().get("manifest_list"))
-    root = _progress_load_root()
-
-    # ensure structure
-    root.setdefault("shared", {})
-    root.setdefault("jobs", {})
-    root["jobs"].setdefault(globals().get("selected_class", ""), {})
-
-    entry = {"completed": False, "step": int(step if step >= 1 else 1)}
-    if source == "shared":
-        root["shared"].setdefault(qkey, {}).update(entry)
-    else:
-        root["jobs"][globals().get("selected_class", "")].setdefault(qkey, {}).update(entry)
-
-    # keep "current" in sync
-    root.setdefault("current", {})
-    root["current"].update({
-        "job": globals().get("selected_class", ""),
-        "quest": qkey,
-        "step": int(step if step >= 1 else 1),
-    })
-
-    _progress_save_root(root)
+    _write_progress_entry(file_path, step, completed=False, update_current=True)
 
 def resolve_goto_chain(file, step):
     """Follow goto-only steps until a real step is found."""
@@ -1797,36 +1791,14 @@ def _auto_advance_to_next_incomplete() -> bool:
         data = load_json(current_file)
         current_step = 1  # always start at 1 when auto-advancing after a finished quest
 
-        root.setdefault("current", {})
-        root["current"].update({"job": selected_class, "quest": qk, "step": 1})
-        _progress_save_root(root)
-        progress = root
+        _set_current_pointer_state(current_file, 1)
         print(f"[+] Next quest: {os.path.basename(current_file)} (step 1)")
         return True
 
     return False
 
 def save_progress_quiet(file_path: str, step: int) -> None:
-    """
-    Update jobs/shared step and completed=False for the given quest,
-    but DO NOT touch progress['current'].
-    """
-    qkey = _quest_key_for_path(file_path)
-    source = _quest_source_for(qkey, globals().get("manifest_list"))
-    root = _progress_load_root()
-
-    # ensure structure
-    root.setdefault("shared", {})
-    root.setdefault("jobs", {})
-    root["jobs"].setdefault(globals().get("selected_class", ""), {})
-
-    entry = {"completed": False, "step": int(step if step >= 1 else 1)}
-    if source == "shared":
-        root["shared"].setdefault(qkey, {}).update(entry)
-    else:
-        root["jobs"][globals().get("selected_class", "")].setdefault(qkey, {}).update(entry)
-
-    _progress_save_root(root)
+    _write_progress_entry(file_path, step, completed=False, update_current=False)
 
 print(f"[+] Job file: {current_file}")
 
