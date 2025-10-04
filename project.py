@@ -1,3 +1,70 @@
+def _cycle_target_selection(keymap):
+    execute_command_sequence(["press", "VK_TAB", "rand", 56, 126, "release", "VK_TAB"], keymap)
+    time.sleep(1.5)
+
+def _pick_target_via_ocr(candidates, limits, kills, region):
+    for name in candidates:
+        if perform_ocr_and_find_text(name, region):
+            if kills[name] >= limits[name]:
+                print(f"[i] Already met quota for {name}, skipping.")
+                continue
+            return name
+    return None
+
+def _move_mouse_to_last_detection():
+    if last_detection_type == "ocr" and last_ocr_match_center:
+        move_mouse_hardware(*last_ocr_match_center)
+        time.sleep(0.2)
+        return True
+    if last_detection_type == "img" and last_img_match_center:
+        move_mouse_hardware(*last_img_match_center)
+        time.sleep(0.2)
+        return True
+    print("[!] No valid target position available for mouse move.")
+    return False
+
+def _open_with_mouse(keymap):
+    execute_command_sequence(["press", "VK_RBUTTON", "rand", 40, 80, "release", "VK_RBUTTON"], keymap)
+    time.sleep(0.3)
+    execute_command_sequence(["press", "VK_LBUTTON", "rand", 40, 80, "release", "VK_LBUTTON"], keymap)
+
+def _await_defeat_line(target, keymap, kills, limits):
+    if await_battle_defeat(target.lower(), keymap, interval_ms=1000, timeout_ms=90000):
+        kills[target] = min(limits[target], kills[target] + 1)
+        progress_str = ", ".join(f"{name}: {kills[name]}/{limits[name]}" for name in limits)
+        print(f"[*] {target} defeated. Progress [{progress_str}]")
+        return True
+    print(f"[!] Timed out waiting for Battle chat defeat line for {target}.")
+    return False
+
+def _rotate_for_additional_targets(keymap):
+    execute_command_sequence(["press", "VK_RIGHT", "rand", 156, 256, "release", "VK_RIGHT"], keymap)
+    time.sleep(0.3)
+
+def _combat_timed_out(start_time, limit_seconds=300):
+    if time.time() - start_time > limit_seconds:
+        print("[!] Combat timed out.")
+        return True
+    return False
+
+def _handle_no_target_found():
+    print("[!] No valid target found; waiting briefly before retrying...")
+    time.sleep(0.5)
+
+def _finalize_combat(end_command, keymap):
+    print(f"[+] Combat finished. Returning to scout position: {end_command}")
+    if end_command:
+        send_chat_command(end_command, keymap)
+
+def _engage_target(name, keymap, kills, limits):
+    print(f"[*] Engaging {name}...")
+    _move_mouse_to_last_detection()
+    _open_with_mouse(keymap)
+    start_combat(keymap)
+    time.sleep(0.5)
+    _await_defeat_line(name, keymap, kills, limits)
+    end_combat(keymap)
+
 import ctypes
 import random
 import time
@@ -403,11 +470,9 @@ def _normalize_chat_text(s: str) -> str:
     s = re.sub(r'\s+', ' ', s).strip()
     return s
 
-
 def _important_tokens(text: str) -> set[str]:
     tokens = [tok for tok in text.split() if tok and tok not in STOPWORDS_COMMON]
     return set(tokens)
-
 
 def perform_ocr_find_text_fuzzy(target_text: str, region=None, threshold: float = 0.90,
                                 ocr_timeout_sec: float | None = None) -> bool:
@@ -842,7 +907,6 @@ def _resolve_exec_command(command: str):
     single_run = bool(cont_arg and str(cont_arg).lower() in {'false', '0', 'no'})
     return path_candidate, step_num, single_run
 
-
 def _interactive_console_loop(prompt: str) -> None:
     global current_file, current_step, data, single_run_mode
     print(prompt)
@@ -994,116 +1058,47 @@ def end_combat(keymap):
     send_chat_command("/bmrai off", keymap)
     time.sleep(0.2)
 
+def _build_target_limits(names, counts):
+    default = counts[0] if counts else 1
+    return {name: (counts[idx] if idx < len(counts) else default)
+            for idx, name in enumerate(names)}
+
 def handle_combat_step(combat_data, keymap):
-    names = combat_data.get("names", [])
-    counts = combat_data.get("counts", [])
-    end_command = combat_data.get("end_command")
+    names = combat_data.get('names', [])
+    counts = combat_data.get('counts', [])
+    end_command = combat_data.get('end_command')
 
-    print(f"[*] Combat started. Targets: {dict(zip(names, counts))}")
+    target_limits = _build_target_limits(names, counts)
+    if not target_limits:
+        print('[!] No combat targets provided.')
+        return
 
-    kills = {name: 0 for name in names}
+    print(f"[*] Combat started. Targets: {target_limits}")
+
+    kills = {name: 0 for name in target_limits}
     start_time = time.time()
-
-    # Hard-coded OCR region for mob name
     name_region = (750, 31, 1190, 52)
 
-    while any(kills[name] < counts[i] for i, name in enumerate(names)):
-        # TAB target cycle
-        # Build list of remaining targets (respect requested counts)
-        remaining = [n for i, n in enumerate(names) if kills[n] < counts[i]]
+    while True:
+        remaining = [name for name, limit in target_limits.items() if kills[name] < limit]
         if not remaining:
-            print("[+] All requested kills completed.")
+            print('[+] All requested kills completed.')
             break
 
-        # TAB target cycle
-        execute_command_sequence(["press", "VK_TAB", "rand", 56, 126, "release", "VK_TAB"], keymap)
-        time.sleep(1.5)
+        _cycle_target_selection(keymap)
+        target = _pick_target_via_ocr(remaining, target_limits, kills, name_region)
 
-        # Step 1: OCR check for current target (inside fixed region), only among remaining
-        found_target = None
-        for n in remaining:
-            if perform_ocr_and_find_text(n, name_region):
-                found_target = n
-                break
-
-        # If the OCR hit is already at quota (race condition), skip it
-        if found_target is not None:
-            idx = names.index(found_target)
-            if kills[found_target] >= counts[idx]:
-                print(f"[i] Already met quota for {found_target}, skipping.")
-                found_target = None
-
-        if found_target:
-            print(f"[*] Engaging {found_target}...")
-
-            # Move mouse to the last OCR match center before attacking
-            if last_detection_type == "ocr" and last_ocr_match_center:
-                move_mouse_hardware(*last_ocr_match_center)
-                time.sleep(0.2)
-            elif last_detection_type == "img" and last_img_match_center:
-                move_mouse_hardware(*last_img_match_center)
-                time.sleep(0.2)
-            else:
-                print("[!] No valid target position available for mouse move.")
-
-            # Right-click to target
-            execute_command_sequence(
-                ["press", "VK_RBUTTON", "rand", 40, 80, "release", "VK_RBUTTON"], keymap
-            )
-            time.sleep(0.3)
-
-            # Left-click to confirm interaction/attack
-            execute_command_sequence(
-                ["press", "VK_LBUTTON", "rand", 40, 80, "release", "VK_LBUTTON"], keymap
-            )
-            # Start combat helper
-            start_combat(keymap)
-            time.sleep(0.5)
-
-            # Step 2: Switch to Battle tab and wait for the defeat line.
-            # We "arm" first by requiring the line to be ABSENT, then look for it to appear.
-            success = await_battle_defeat(found_target.lower(), keymap, interval_ms=1000, timeout_ms=90000)
-            if success:
-                idx = names.index(found_target)
-                if kills[found_target] < counts[idx]:
-                    kills[found_target] += 1
-                if kills[found_target] > counts[idx]:
-                    kills[found_target] = counts[idx]
-
-                progress_str = ", ".join(
-                    f"{n}: {kills[n]}/{counts[i]}" for i, n in enumerate(names)
-                )
-                print(f"[*] {found_target} defeated. Progress [{progress_str}]")
-            else:
-                print(f"[!] Timed out waiting for Battle chat defeat line for {found_target}.")
-
-            # End combat helper (either way)
-            end_combat(keymap)
-
+        if target:
+            _engage_target(target, keymap, kills, target_limits)
         else:
-            # No valid mob found
-            print("[!] No valid target found, waiting (fallback 10s)...")
-            time.sleep(0.5)
+            _handle_no_target_found()
 
-        # Safety check for timeout
-        if time.time() - start_time > 60 * 5:  # 5 min cap
-            print("[!] Combat timed out.")
+        if _combat_timed_out(start_time):
             break
-        
-        # Rotating in place to look for more mobs
-        execute_command_sequence(
-                ["press", "VK_RIGHT", "rand", 156, 256, "release", "VK_RIGHT"], keymap
-            )
-        time.sleep(0.3)
 
-        # Always return to scouting spot if end_command is defined
-        # if end_command:
-        #    print(f"[*] Returning to scout position with: {end_command}")
-        #    send_chat_command(end_command, keymap)
+        _rotate_for_additional_targets(keymap)
 
-    print(f"[+] Combat finished. Returning to scout position: {end_command}")
-    if end_command:
-        send_chat_command(end_command, keymap)
+    _finalize_combat(end_command, keymap)
 
 def parse_vector3_string(s: str):
     nums = _coord_num_re.findall(s)
