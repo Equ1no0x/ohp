@@ -1,12 +1,22 @@
 {
 	"1": [
-		{ "comment": "Interact with Serious Sultansworn" },
+		{ "comment": "Interact with Serious Sultansworn, deliver Pretzels" },
 		{ "vnav": ["126.278 14.537 277.576", 15000, 2] },
 		{ "interaction_type": ["npc_interact", {"name": "Sultansworn"}] }
 	],
 	"2": [
-		{ "comment": "Interact with Sultansworn" },
 		{ "vnav": ["90.991 4.635 423.416", 35000, 2] },
 		{ "interaction_type": ["npc_interact", {"name": "Sultansworn"}] }
+	],
+	"3": [
+		{ "vnav": ["-60.843 4.642 262.951", 40000, 2] },
+		{ "interaction_type": ["npc_interact", {"name": "Sultansworn"}] }
+	],
+	"4": [
+		{ "map": "central_thanalan", "npc": "papashan" },
+		{ "interaction_type": ["npc_interact", {"name": "Papashan"}] }
+	],
+	"5": [
+		{ "comment": "End of quest file" }
 	]
 }

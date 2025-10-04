@@ -3,5 +3,7 @@
 	{ "quest": "568_close_to_home", "source": "class" },
 	{ "quest": "253_way_of_the_gladiator", "source": "class" },
 	{ "quest": "595_we_must_rebuild", "source": "shared" },
-	{ "quest": "671_nothing_to_see_here", "source": "shared" }
+	{ "quest": "671_nothing_to_see_here", "source": "shared" },
+	{ "quest": "550_underneath_the_sultantree", "source": "shared" },
+	{ "quest": "303_step_nine", "source": "shared" }
 ]

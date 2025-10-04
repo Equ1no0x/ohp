@@ -52,13 +52,13 @@
 		{ "rand": [156, 226]}
 	],
 	"sec_duty": [
-		{ "img_search": "assets/quest_instance.png" },
+		{ "img_search": "quest_instance.png" },
 		{ "await": [2000, "img", true, "", 30000, false] },
 		{ "command": "/rotation Auto" },
 		{ "rand": [156, 226]},
 		{ "command": "/bmrai on" },
 		{ "rand": [156, 226]},
-		{ "img_search": "assets/quest_instance.png" },
+		{ "img_search": "quest_instance.png" },
 		{ "await": [2000, "img", false, "", 240000, false] },
 		{ "rand": [5000, 6000]},
 		{ "command": "/bmrai off" },
@@ -165,6 +165,13 @@
 	],
 	"select_accept": [
 		{ "img_search": "quest_accept.png" },
+		{ "await": [1000, "img", true, "", 2500, false] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333] },
+		{ "command": "short_lclick" }
+	],
+	"select_proceed": [
+		{ "img_search": "quest_proceed.png" },
 		{ "await": [1000, "img", true, "", 2500, false] },
 		{ "mouse_move": "move_to" },
 		{ "rand": [222, 333] },

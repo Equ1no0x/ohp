@@ -1,0 +1,11 @@
+{
+	"1": [
+		{ "comment": "Accept quest" },
+		{ "map": "central_thanalan", "npc": "cicidoa" },
+		{ "interaction_type": ["npc_interact", {"name": "cicidoa"}] }
+	],
+	"2": [
+		{ "map": "central_thanalan", "npc": "gagari" },
+		{ "interaction_type": ["npc_interact", {"name": "gagari"}] }
+	]
+}

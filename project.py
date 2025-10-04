@@ -44,18 +44,21 @@ PROGRESS_STATE_FILE = "progress.json"
 
 def _to_abs(p: str) -> str:
     """Return absolute path; if relative, anchor at BASE_DIR."""
-    return p if os.path.isabs(p) else os.path.join(BASE_DIR, p)
+    return _normalize_slashes(p if os.path.isabs(p) else os.path.join(BASE_DIR, p))
 
 def _exists_any(p: str) -> bool:
     """True if path exists either as-is or anchored at BASE_DIR."""
     return os.path.exists(p) or os.path.exists(_to_abs(p))
+
+def _normalize_slashes(path: str) -> str:
+    return path.replace('\\', '/')
 
 def _assets_fullpath(relpath: str) -> str:
     r = str(relpath).lstrip("/\\")
     low = r.lower()
     if low.startswith("assets/") or low.startswith(f"assets{os.sep}"):
         return _to_abs(r)
-    return _to_abs(os.path.join("assets", r))
+    return _normalize_slashes(_to_abs(os.path.join("assets", r)))
 
 from PIL import ImageGrab
 from ctypes import wintypes
@@ -175,7 +178,7 @@ def _debug_ocr_success(lang, psm, payload):
     print(f"[dbg][ocr] used lang='{lang}' psm={psm} tokens={non_empty}")
 
 def _ocr_image_to_data(img, timeout_sec=None):
-    psms = [6, 3, 11, 13]
+    psms = [6, 7, 3, 11, 13]
     langs = ['eng+ffxiv', 'eng']
     timeout = timeout_sec if timeout_sec is not None else TESSERACT_TIMEOUT_SEC
 
@@ -297,7 +300,6 @@ def _best_fuzzy_ratio(lines, target_norm_line):
             best_ratio = max(best_ratio, span[2])
     return best_ratio
 
-
 def _handle_ocr_miss(results, region, target_text, target_norm_line):
     try:
         _dump_ocr_debug(results, region, target_norm_line)
@@ -393,7 +395,6 @@ STOPWORDS_COMMON = {
 }
 
 CONSOLE_PROMPT = "[+] Enter a command (e.g. '/exec <quest|file> [step]' or '/resume'), or 'exit' to quit."
-
 
 def _normalize_chat_text(s: str) -> str:
     s = (s or "").lower()
@@ -1117,7 +1118,7 @@ def read_player_coords_from_screen(region=VNAV_COORDS_REGION):
         text = pytesseract.image_to_string(
             img,
             lang="eng+ffxiv",
-            config="--psm 7 -c tessedit_char_whitelist=0123456789.-, "
+            config="--oem 1 --psm 7 -c tessedit_char_whitelist=0123456789.-, "
         )
         text_clean = text.replace("\n", " ").replace("  ", " ").strip()
         return parse_vector3_string(text_clean)
@@ -1737,6 +1738,7 @@ def _resume_from_saved_step() -> bool:
         if baseline > 0:
             _mark_quest_completed(current_file, baseline)
         return _auto_advance_to_next_incomplete()
+    root = _progress_load_root()
     qkey = _quest_key_for_path(current_file)
     src  = _quest_source_for(qkey, manifest_list)
     if src == "shared":

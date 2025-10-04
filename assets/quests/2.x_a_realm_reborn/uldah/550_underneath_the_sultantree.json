@@ -1,0 +1,24 @@
+{
+	"1": [
+		{ "comment": "Accept quest" },
+		{ "interaction_type": ["npc_interact", {"name": "Papashan"}] }
+	],
+	"2": [
+		{ "comment": "Await cutscene" },
+		{ "destination": ["74.467 2.135 317.821", 1000, 5] },
+		{ "vnav": ["200.116 14.218 537.598", 1000, 5] },
+		{ "interaction_type": ["npc_interact", {"name": "Hooded Lalafell"}] },
+		{ "comment": "Close tutorial windows" },
+		{ "interaction_type": ["open_tutorial"] },
+		{ "interaction_type": ["close_tutorial"] },
+		{ "interaction_type": ["select_proceed"] },
+		{ "interaction_type": ["sec_duty"] }
+	],
+	"3": [
+		{ "map": "central_thanalan", "npc": "papashan" },
+		{ "interaction_type": ["npc_interact", {"name": "Papashan"}] }
+	],
+	"4": [
+		{ "comment": "End of quest file" }
+	]
+}
