@@ -30,7 +30,7 @@
 	},
 	"central_thanalan": {
 		"gate_of_nald": { "vnav": ["-118.175 18.353 341.303", -1, 5] },
-		"black_brush_aetheryte": { "vnav": ["-16.764 -1.878 -163.592"] },
+		"black_brush_aetheryte": { "vnav": ["-16.764 -1.878 -163.592", 50000, 5] },
 		"western_thanalan": { "vnav": ["-407.107 -1.888 101.671"] }
 	},
 	"central_thanalan_black_brush": {

@@ -64,13 +64,54 @@
 		{ "command": "/bmrai off" },
 		{ "rand": [156, 226]}
 	],
+	"start_combat": [
+		{ "command": "/rotation Auto" },
+		{ "rand": [156, 226]},
+		{ "command": "/bmrai on" },
+		{ "rand": [156, 226]}
+	],
+	"end_combat": [
+		{ "command": "/rotation off" },
+		{ "rand": [156, 226]},
+		{ "command": "/bmrai off" },
+		{ "rand": [156, 226]}
+	],
 	"npc_interact": [
 		{ "ocr": "$name" },
 		{ "region": "712, 29, 1190, 52" },
 		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 10000] },
 		{ "rand": [56, 126]},
 		{ "command": "confirm" },
-		{ "rand": [4000, 5000]}
+		{ "rand": [1500, 2500]}
+	],
+	"shop_interact": [
+		{ "ocr": "$type" },
+		{ "region": "$range" },
+		{ "await": [2000, "ocr", true, "", 10000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333] },
+		{ "command": "short_lclick" },
+		{ "rand": [222, 333] },
+		{ "ocr": "$item" },
+		{ "region": "$list_range" },
+		{ "await": [2000, "ocr", true, "", 10000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333] },
+		{ "command": "short_lclick" },
+		{ "rand": [222, 333] },
+		{ "img_search": "quest_ok.png" },
+		{ "await": [1000, "img", true, "", 30000, false] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333] },
+		{ "command": "short_lclick" },
+		{ "rand": [222, 333] }
+	],
+	"exit_shop": [
+		{ "img_search": "shop_exit.png" },
+		{ "await": [1000, "img", true, "", 2500, false] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333] },
+		{ "command": "short_lclick" }
 	],
 	"register_f": [
 		{ "ocr": "Aetheryte" },
@@ -264,5 +305,21 @@
 		{ "rand": [222, 333]},
 		{ "command": "open_char" },
 		{ "rand": [1500, 2500]}
+	],
+	"use_item": [
+		{ "img_search": "$name" },
+		{ "rand": [56, 126]},
+		{ "await": [1000, "img", true, "", 60000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "single_rclick" },
+		{ "rand": [222, 333]},
+		{ "img_search": "item_use.png" },
+		{ "rand": [56, 126]},
+		{ "await": [1000, "img", true, "", 60000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [222, 333]},
+		{ "command": "short_lclick" },
+		{ "rand": [6000, 7000]}
 	]
 }

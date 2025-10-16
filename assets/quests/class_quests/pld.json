@@ -5,5 +5,7 @@
 	{ "quest": "595_we_must_rebuild", "source": "shared" },
 	{ "quest": "671_nothing_to_see_here", "source": "shared" },
 	{ "quest": "550_underneath_the_sultantree", "source": "shared" },
-	{ "quest": "303_step_nine", "source": "shared" }
+	{ "quest": "303_step_nine", "source": "shared" },
+	{ "quest": "3852_prudence_at_this_junction", "source": "shared" },
+	{ "quest": "307_out_of_house_and_home", "source": "shared" }
 ]

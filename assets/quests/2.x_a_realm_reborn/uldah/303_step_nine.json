@@ -5,7 +5,15 @@
 		{ "interaction_type": ["npc_interact", {"name": "cicidoa"}] }
 	],
 	"2": [
+		{ "vnav": ["44.523 0.938 255.608", -1, 5] },
 		{ "map": "central_thanalan", "npc": "gagari" },
 		{ "interaction_type": ["npc_interact", {"name": "gagari"}] }
+	],
+	"3": [
+		{ "map": "central_thanalan", "npc": "roger" },
+		{ "interaction_type": ["npc_interact", {"name": "roger"}] }
+	],
+	"4": [
+		{ "comment": "End of quest file" }
 	]
 }

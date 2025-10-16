@@ -1,0 +1,33 @@
+{
+	"1": [
+		{ "comment": "Accept quest" },
+		{ "interaction_type": ["npc_interact", {"name": "Warin"}] }
+	],
+	"2": [
+		{ "interaction_type": ["open_tutorial"] },
+		{ "interaction_type": ["close_tutorial"] }
+	],
+	"3": [
+		{ "vnav": ["25.264 13 49.324", 30000, 5] },
+		{ "interaction_type": ["npc_interact", {"name": "Narrow Fissure"}] },
+		{ "interaction_type": ["use_item", {"name": "qitem_silver_ore_cluster_icon.png"}] }
+	],
+	"4": [
+		{
+			"combat": {
+				"region": "750, 31, 1190, 52",
+				"names": ["Silver Coblyn"],
+				"counts": [1]
+			}
+		},
+		{ "interaction_type": ["end_combat"] },
+		{ "command": "change_stance" }
+	],
+	"5": [
+		{ "map": "central_thanalan", "npc": "warin" },
+		{ "interaction_type": ["npc_interact", {"name": "warin"}] }
+	],
+	"6": [
+		{ "comment": "End of quest file" }
+	]
+}
