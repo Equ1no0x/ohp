@@ -1,0 +1,55 @@
+{
+	"1": [
+		{ "comment": "Accept quest" },
+		{ "map": "central_thanalan", "npc": "zuzumeda" },
+		{ "interaction_type": ["npc_interact", {"name": "Zuzumeda"}] }
+	],
+	"2": [
+		{ "map": "central_thanalan", "npc": "wystan" },
+		{ "interaction_type": ["npc_interact", {"name": "Wystan"}] }
+	],
+	"3": [
+		{ "vnav": ["-80.031 -12.818 -34.021", 2500, 0.70] },
+		{ "interaction_type": ["npc_interact", {"name": "Child"}] }
+	],
+	"4": [
+		{ "vnav": ["-80.419 -12.419 -33.896", 2500, 0.70] },
+		{ "interaction_type": ["npc_interact", {"name": "Child"}] }
+	],
+	"5": [
+		{ "vnav": ["-80.497 -12.807 -38.769", 2500, 0.70] },
+		{ "interaction_type": ["npc_interact", {"name": "Child"}] }
+	],
+	"6": [
+		{ "vnav": ["-82.702 -11.350 -37.096", 2500, 0.50] },
+		{ "interaction_type": ["npc_interact", {"name": "Starveling"}] }
+	],
+	"7": [
+		{ "map": "central_thanalan", "npc": "wystan" },
+		{ "interaction_type": ["npc_interact", {"name": "Wystan"}] }
+	],
+	"8": [
+		{ "vnav": ["-227.592 -31.608 115.776"] },
+		{ "interaction_type": ["sp_duty", {"name": "Wystan"}] }
+	],
+	"9": [
+		{ "map": "central_thanalan", "npc": "wystan" },
+		{ "interaction_type": ["npc_interact", {"name": "Wystan"}] }
+	],
+	"10": [
+		{ "interaction_type": ["use_return"] },
+		{ "map": "uldah", "location": "uldah_aetheryte_tp" },
+		{ "interaction_type": ["use_aetheryte", {"name": "Adventurers' Guild"}] }
+	],
+	"11": [
+		{ "map": "uldah", "location": "adventurers_guild_tp" },
+		{ "map": "uldah", "npc": "momodi" },
+		{ "interaction_type": ["npc_interact", {"name": "Momodi"}] }
+	],
+	"12": [
+		{ "destination": ["21.869 6.999 -81.505", 8000, 5] }
+	],
+	"13": [
+		{ "comment": "End of quest file" }
+	]
+}

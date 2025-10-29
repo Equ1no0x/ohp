@@ -1,0 +1,87 @@
+{
+	"1": [
+		{ "map": "uldah", "location": "adventurers_guild_as" },
+		{ "interaction_type": ["use_aethernet_shard", {"name": "Gladiators' Guild"}] },
+		{ "map": "uldah", "location": "gladiators_guild_tp" }
+	],
+	"2": [
+		{ "comment": "Accept quest" },
+		{ "map": "uldah", "npc": "mylla" },
+		{ "interaction_type": ["npc_interact", {"name": "mylla"}] }
+	],
+	"3": [
+		{ "map": "uldah", "location": "gladiators_guild_as" },
+		{ "interaction_type": ["use_aethernet_shard", {"name": "Adventurers' Guild"}] },
+		{ "map": "uldah", "location": "adventurers_guild_tp" }
+	],
+	"4": [
+		{ "vnav": ["76.118 4.099 -136.998", 10000, 2.50] },
+		{ "interaction_type": ["emote_interact", {"name": "Marauder"}, {"emote": "/me"}] }
+	],
+	"5": [
+		{ "vnav": ["46.335 4 -129.562", 10000, 2.50] },
+		{ "interaction_type": ["emote_interact", {"name": "Marauder"}, {"emote": "/me"}] }
+	],
+	"6": [
+		{ "vnav": ["16.586 7.999 -125.309", 10000, 2.50] },
+		{ "interaction_type": ["emote_interact", {"name": "Marauder"}, {"emote": "/me"}] }
+	],
+	"7": [
+		{ "vnav": ["14.065 4.099 -154.674", 10000, 2.50] },
+		{ "interaction_type": ["emote_interact", {"name": "Marauder"}, {"emote": "/me"}] }
+	],
+	"8": [
+		{ "vnav": ["21.518 7.199 -95.670", 10000, 2.50] },
+		{ "interaction_type": ["emote_interact", {"name": "Pfarmurl"}, {"emote": "/me"}] }
+	],
+	"9": [
+		{ "map": "uldah", "npc": "momodi" },
+		{ "interaction_type": ["npc_interact", {"name": "Momodi"}] }
+	],
+	"10": [
+		{ "map": "uldah", "location": "adventurers_guild_as" },
+		{ "interaction_type": ["use_aethernet_shard", {"name": "Gladiators' Guild"}] },
+		{ "map": "uldah", "location": "gladiators_guild_tp" }
+	],
+	"11": [
+		{ "map": "uldah", "npc": "mylla" },
+		{ "interaction_type": ["npc_interact", {"name": "mylla"}] }
+	],
+	"12": [
+		{ "comment": "To Steps of Nald" },
+		{ "vnav": ["-112.702 7.754 9.123", -1, 2.2] },
+		{ "comment": "To Gate of the Sultana" },
+		{ "vnav": ["-183.000 13.958 -13.998", -1, 2.2] }
+	],
+	"13": [
+		{ "destination": ["460.239 95.561 159.338", -1, 10.5] },
+		{ "map": "western_thanalan", "npc": "nervous_merchant" },
+		{ "interaction_type": ["npc_interact", {"name": "Nervous Merchant"}] }
+	],
+	"14": [
+		{ "interaction_type": ["open_tutorial"] },
+		{ "interaction_type": ["close_tutorial"] }
+	],
+	"15": [
+		{ "vnav": ["154.998 52.599 199.857", 10000, 2.2] },
+		{ "interaction_type": ["npc_interact", {"name": "Caravan Sack"}] },
+		{
+			"combat": {
+				"region": "750, 31, 1190, 52",
+				"names": ["Murderous Marauder"],
+				"counts": [1]
+			}
+		}
+	],
+	"16": [
+		{ "vnav": ["142.280 52.963 220.570", 10000, 2.2] },
+		{ "interaction_type": ["npc_interact", {"name": "Caravan Sack"}] },
+		{
+			"combat": {
+				"region": "750, 31, 1190, 52",
+				"names": ["Pfarmurl"],
+				"counts": [1]
+			}
+		}
+	]
+}

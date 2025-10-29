@@ -7,5 +7,7 @@
 	{ "quest": "550_underneath_the_sultantree", "source": "shared" },
 	{ "quest": "303_step_nine", "source": "shared" },
 	{ "quest": "3852_prudence_at_this_junction", "source": "shared" },
-	{ "quest": "307_out_of_house_and_home", "source": "shared" }
+	{ "quest": "307_out_of_house_and_home", "source": "shared" },
+	{ "quest": "320_way_down_in_the_hole", "source": "shared" },
+	{ "quest": "256_kicking_the_hornets_nest", "source": "class" }
 ]

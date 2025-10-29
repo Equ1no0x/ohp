@@ -9,7 +9,7 @@
 		"miners_guild_as": { "vnav": ["31.747 12 115.251"] },
 		"goldsmiths_guild_as": { "vnav": ["-19.500 14.075 73.934"] },
 		"goldsmiths_guild_tp": { "destination": ["-20.506 14 77.376", -1, 5] },
-		"gladiators_guild_as": { "vnav": ["-53.148 10 10.668"] },
+		"gladiators_guild_as": { "vnav": ["-50.289 9.999 10.797"] },
 		"gladiators_guild_tp": { "destination": ["-53.148 10 10.668", -1, 5] },
 		"chamber_of_rule_as": { "vnav": ["3.877 29.999 -24.378"] },
 		"chamber_of_rule_tp": { "destination": ["6.019 30 -22.577", -1, 5] },
