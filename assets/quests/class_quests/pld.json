@@ -15,5 +15,6 @@
 	{ "quest": "503_give_it_to_me_raw", "source": "shared" },
 	{ "quest": "329_the_perfect_swarm", "source": "shared" },
 	{ "quest": "330_last_letter_to_lost_hope", "source": "shared" },
-	{ "quest": "3853_heir_today_gone_tomorrow", "source": "shared" }
+	{ "quest": "3853_heir_today_gone_tomorrow", "source": "shared" },
+	{ "quest": "332_passing_the_blade", "source": "shared" }
 ]

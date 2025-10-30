@@ -2,6 +2,8 @@
 	"1": [
 		{ "comment": "Close tutorial windows" },
 		{ "interaction_type": ["open_tutorial"] },
+		{ "interaction_type": ["close_tutorial"] },
+		{ "interaction_type": ["open_tutorial"] },
 		{ "interaction_type": ["close_tutorial"] }
 	],
 	"2": [

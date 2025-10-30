@@ -5,8 +5,8 @@
 	],
 	"2": [
 		{ "comment": "Await cutscene" },
-		{ "destination": ["74.467 2.135 317.821", 1000, 5] },
-		{ "vnav": ["200.116 14.218 537.598", 1000, 5] },
+		{ "destination": ["74.467 2.135 317.821", -1, 10] },
+		{ "vnav": ["200.116 14.218 537.598", -1, 10] },
 		{ "interaction_type": ["npc_interact", {"name": "Hooded Lalafell"}] },
 		{ "comment": "Close tutorial windows" },
 		{ "interaction_type": ["open_tutorial"] },

@@ -3,7 +3,7 @@
 	"controls_select": [
 		{ "ocr": "Mouse/Keyboard" },
 		{ "region": "790, 530, 920, 555" },
-		{ "await": [1000, "ocr", true, "", 4000, false] },
+		{ "await": [1000, "ocr", true, "", 15000, false] },
 		{ "mouse_move": "move_to" },
 		{ "rand": [222, 333] },
 		{ "command": "short_lclick" },
@@ -146,17 +146,11 @@
 		{ "rand": [7000, 8000]}
 	],
 	"use_aethernet_shard": [
-		{ "ocr": "Aethernet Shard" },
-		{ "region": "712, 29, 1190, 52" },
-		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 45000] },
 		{ "rand": [56, 156]},
 		{ "command": "/li $name" },
 		{ "rand": [4000, 5000]}
 	],
 	"use_aetheryte": [
-		{ "ocr": "Aetheryte" },
-		{ "region": "712, 29, 1190, 52" },
-		{ "await": [1000, "ocr", true, "VK_NUMPAD0", 45000] },
 		{ "rand": [56, 156]},
 		{ "command": "/li $name" },
 		{ "rand": [4000, 5000]}

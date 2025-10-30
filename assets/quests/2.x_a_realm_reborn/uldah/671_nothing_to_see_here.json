@@ -1,7 +1,7 @@
 {
 	"1": [
 		{ "comment": "Interact with Serious Sultansworn, deliver Pretzels" },
-		{ "vnav": ["126.278 14.537 277.576", 15000, 2] },
+		{ "vnav": ["126.043 14.484. 278.049", 15000, 2] },
 		{ "interaction_type": ["npc_interact", {"name": "Sultansworn"}] }
 	],
 	"2": [

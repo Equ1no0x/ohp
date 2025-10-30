@@ -1,5 +1,6 @@
 {
 	"1": [
+		{ "rand": [1500, 2500] },
 		{ "comment": "Close tutorial windows" },
 		{ "interaction_type": ["open_tutorial"] },
 		{ "interaction_type": ["close_tutorial"] },
@@ -10,6 +11,7 @@
 	"2": [
 		{ "comment": "Await cutscene and close tutorial windows" },
 		{ "destination": ["22.831 6.999 -82.609", -1, 5] },
+		{ "rand": [1500, 2500] },
 		{ "interaction_type": ["open_tutorial"] },
 		{ "interaction_type": ["close_tutorial"] },
 		{ "interaction_type": ["open_tutorial"] },
@@ -70,11 +72,17 @@
 		{ "vnav": ["-112.643 7.734 9.960", -1, 10] }
 	],
 	"14": [
+		{ "destination": ["-126.582 9.999 7.269", -1, 10] },
 		{ "map": "uldah", "location": "thaumaturges_guild_as" },
-		{ "interaction_type": ["attune_aethernet_shard"] }
+		{ "interaction_type": ["attune_aethernet_shard"] },
+		{ "map": "uldah", "location": "uldah_aetheryte" },
+		{ "interaction_type": ["attune_aetheryte"] },
+		{ "rand": [1500, 2500] },
+		{ "interaction_type": ["open_tutorial"] },
+		{ "interaction_type": ["close_tutorial"] }
 	],
 	"15": [
-		{ "interaction_type": ["use_aethernet_shard", {"name": "Gladiators' Guild"}] },
+		{ "interaction_type": ["use_aetheryte", {"name": "Gladiators' Guild"}] },
 		{ "destination": ["-53.148 10 10.668", -1, 5] }
 	],
 	"16": [

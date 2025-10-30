@@ -139,10 +139,15 @@ class ACTLogWatcher:
                 # For defeats, also notify callbacks
                 if self.MSG_DEFEAT in msg_lower:
                     try:
+                        # Extract monster name while preserving original case
                         if self.MSG_DEFEAT_THE in msg_lower:
-                            monster_name = msg_lower.split(self.MSG_DEFEAT_THE)[1].rstrip('.')
+                            index = message.lower().find(self.MSG_DEFEAT_THE) + len(self.MSG_DEFEAT_THE)
+                            monster_name = message[index:].rstrip('.')
                         else:
-                            monster_name = msg_lower.split(self.MSG_DEFEAT)[1].rstrip('.')
+                            index = message.lower().find(self.MSG_DEFEAT) + len(self.MSG_DEFEAT)
+                            monster_name = message[index:].rstrip('.')
+                        monster_name = monster_name.strip()
+                        print(f"[DEBUG][Combat] Defeated: {monster_name}")
                         self._notify_combat_complete(monster_name)
                     except Exception as e:
                         print(f"[!] Error extracting monster name: {e}")

@@ -1,6 +1,6 @@
 {
 	"uldah": {
-		"uldah_aetheryte": { "vnav": ["-141.747 -3.154 -166.566"] },
+		"uldah_aetheryte": { "vnav": ["-141.747 -3.154 -166.566", -1, 5] },
 		"uldah_aetheryte_tp": { "destination": ["-137.516 -3.154 -170.12", -1, 10.5] },
 		"adventurers_guild_as": { "vnav": ["63.248 4.1 -117.200"] },
 		"adventurers_guild_tp": { "destination": ["66.239 4 -117.976", -1, 5] },

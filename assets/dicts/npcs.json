@@ -28,11 +28,11 @@
 		"zuzumeda": { "vnav": ["-35.103 -2.058 -154.399"] },
 		"wystan": { "vnav": ["-94.251 -11.350 -44.757"] },
 		"seseli": { "vnav": ["-256.826 -0.283 26.477"] },
-		"leofric": { "vnav": ["93.918 0.340 -271.856"] }
+		"leofric": { "vnav": ["94.876 0.340 -272.307"] }
 	},
 	"central_thanalan_black_brush": {
 		"independent_armorer": { "vnav": ["-12.179 -2.048 -145.678", 60000, 5] },
-		"chocobokeep": { "vnav": ["-3.994 -2.054 -158.060"] }
+		"chocobokeep": { "vnav": ["-2.693 -2.055 -158.613"] }
 	},
 	"western_thanalan": {
 		"nervous_merchant": { "vnav": ["202.040 52.038 147.992"] },

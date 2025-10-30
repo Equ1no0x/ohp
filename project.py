@@ -759,7 +759,7 @@ def _set_current_pointer_state(file_path: str, step: int) -> None:
     except Exception:
         pass
 
-def _write_progress_entry(file_path: str, step: int, *, completed: bool, update_current: bool) -> None:
+def _write_progress_entry(file_path: str, step: int, *, completed: bool, update_current: bool, via_goto: bool = False) -> None:
     global progress
     try:
         step_value = int(step)
@@ -774,8 +774,18 @@ def _write_progress_entry(file_path: str, step: int, *, completed: bool, update_
         entry = root.setdefault('shared', {}).setdefault(quest_key, {})
     else:
         entry = root.setdefault('jobs', {}).setdefault(selected_class, {}).setdefault(quest_key, {})
-    entry['completed'] = bool(completed)
-    entry['step'] = step_value
+    
+    if via_goto:
+        # Track steps executed via goto separately
+        entry.setdefault('goto_steps', []).append(step_value)
+    else:
+        # Normal progression - update the main step counter
+        entry['completed'] = bool(completed)
+        entry['step'] = step_value
+        # Clear any goto steps that are <= the current natural progression
+        if 'goto_steps' in entry:
+            entry['goto_steps'] = [s for s in entry['goto_steps'] if s > step_value]
+    
     if update_current:
         root.setdefault('current', {})
         root['current'].update({'job': selected_class, 'quest': quest_key, 'step': step_value})
@@ -933,22 +943,43 @@ def _progress_save_root(root: dict) -> None:
     with open(p, "w", encoding="utf-8") as f:
         json.dump(root, f, indent=2)
 
-def load_progress(file_path: str) -> int:
+def load_progress(file_path: str, skip_goto: bool = False) -> int:
+    """Load saved progress for a file.
+    If skip_goto=False (default), consider steps reached via goto when checking progress.
+    If skip_goto=True, only look at natural progression through the file."""
     qkey = _quest_key_for_path(file_path)
     source = _quest_source_for(qkey, globals().get("manifest_list"))
     root = _progress_load_root()
+    
+    # Get the quest entry
     if source == "shared":
-        val = (root.get("shared", {}).get(qkey, {}) or {}).get("step")
+        entry = root.get("shared", {}).get(qkey, {})
     else:
-        val = (root.get("jobs", {}).get(globals().get("selected_class", ""), {}).get(qkey, {}) or {}).get("step")
+        entry = root.get("jobs", {}).get(globals().get("selected_class", ""), {}).get(qkey, {})
+    entry = entry or {}
+    
+    # Get the main progression step
+    val = entry.get("step")
     try:
-        v = int(val) if val is not None else 1
-        return 1 if v <= 0 else v
+        base_step = int(val) if val is not None else 1
+        if base_step <= 0:
+            base_step = 1
+        
+        # Unless explicitly asked to skip, consider any steps reached via goto
+        if not skip_goto and "goto_steps" in entry:
+            goto_steps = entry["goto_steps"]
+            if goto_steps and any(s > base_step for s in goto_steps):
+                # Only use goto steps if they're beyond our natural progression
+                return max(s for s in goto_steps if s > base_step)
+        
+        return base_step
     except Exception:
         return 1
 
-def save_progress(file_path: str, step: int) -> None:
-    _write_progress_entry(file_path, step, completed=False, update_current=True)
+def save_progress(file_path: str, step: int, via_goto: bool = False) -> None:
+    """Save progress for a file.
+    If via_goto=True, record this as a step reached through a goto rather than natural progression."""
+    _write_progress_entry(file_path, step, completed=False, update_current=True, via_goto=via_goto)
 
 def resolve_goto_chain(file, step):
     visited = set()
@@ -2002,12 +2033,16 @@ while True:
 last_ocr_text = None
 last_ocr_region = None
 last_img_template = None
+goto_triggered = False
 
 while True:
     # Re-sync current_step with saved progress in case of restart
-    saved_step = load_progress(current_file)
-    if saved_step > current_step:
-        current_step = saved_step
+    # Skip this check right after a goto to ensure we execute the target step
+    if not goto_triggered:
+        # Check progress, ignoring steps reached via goto
+        saved_step = load_progress(current_file, skip_goto=True)
+        if saved_step > current_step:
+            current_step = saved_step
 
     # Refresh step keys in case file was changed
     step_keys = sorted(int(k) for k in data.keys())
@@ -2202,9 +2237,23 @@ while True:
                 target_step = int(raw[1]) if len(raw) >= 2 and str(raw[1]).isdigit() else 1
             else:
                 target = raw
+                target_step = 1
 
-            # Resolve the target path (accept id, bare name, or full/relative path)
-            if isinstance(target, (int, str)):
+            # If target is a number, it's a quest ID - look up by quest ID format in files.json 
+            if isinstance(target, (int, str)) and str(target).strip().isdigit():
+                quest_id = str(target).strip()
+                # Look for files starting with the quest ID (like "253_way_of_the_gladiator.json")
+                _load_asset_indices()
+                target_file = next(
+                    (_assets_fullpath(path) for name, path in ASSET_FILE_INDEX.items() 
+                     if name.startswith(f"{quest_id}_")),
+                    None
+                )
+                if not target_file:
+                    print(f"[!] GOTO target not found: Quest ID {quest_id}")
+                    continue
+            # Otherwise resolve as quest name/path
+            elif isinstance(target, (int, str)):
                 tgt_str = str(target).strip()
                 # try id/name with/without .json via registry
                 target_file = resolve_file_path(f"{tgt_str}.json") or resolve_file_path(tgt_str) or tgt_str
@@ -2215,28 +2264,39 @@ while True:
                 print(f"[!] GOTO target not found: {raw}")
                 continue
 
-            # IMPORTANT: save the SOURCE quest at current_step+1 to avoid re-running this step
-            # and DO NOT update progress['current'] to the target.
-            save_progress(current_file, int(current_step) + 1)
+            # Handle progress in both files:
+            # 1. In source: Mark current step as completed (we did the goto)
+            save_progress(current_file, int(current_step))
+            
+            # 2. In target: Mark that we're about to do this step via goto
+            #    But DON'T mark it completed yet since we haven't done it
+            target_step_num = int(target_step) if int(target_step) > 0 else 1
+            save_progress(target_file, target_step_num, via_goto=True)
 
             # Push return frame so finishing the target can come back here at the next step
-            GOTO_STACK.append((current_file, int(current_step) + 1))
+            next_step = int(current_step) + 1
+            GOTO_STACK.append((current_file, next_step))
 
             print(f"[*] GOTO → {target_file}, step {target_step}")
 
-            # Switch to target (no current-pointer update here)
+            # Switch to target file
             current_file = target_file
             data = load_json(current_file)
-            current_step = int(target_step) if int(target_step) > 0 else 1
+            current_step = target_step_num
+            _write_progress_entry(current_file, target_step_num - 1, completed=False, update_current=True)
+            current_step = target_step_num
 
             # Reset any transient detection state if you keep it
             last_ocr_text = None
             last_ocr_region = None
             last_img_template = None
+            goto_triggered = True  # Mark that we just did a goto
 
-            # Re-enter loop on the new file/step
+            # Re-enter loop on the new file/step without saving progress for the target yet
+            # (we haven't executed the target step yet)
             continue
     
+    # After executing all steps in step_list, save that we completed this step
     save_progress(current_file, current_step)
 
     # If a goto switched files, don't advance here.

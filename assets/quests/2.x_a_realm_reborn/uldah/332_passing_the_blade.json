@@ -1,0 +1,13 @@
+{
+	"1": [
+		{ "comment": "Accept quest" },
+		{ "vnav": ["94.876 0.340 -272.307"] },
+		{ "interaction_type": ["npc_interact", {"name": "Leofric"}] }
+	],
+	"2": [
+		{ "comment": "Interact with Chocobokeep" },
+		{ "vnav": ["-2.693 -2.055 -158.613", -1, 5] },
+		{ "interaction_type": ["npc_interact", {"name": "Chocobokeep"}] },
+		{ "command": "escape" }
+	]
+}
