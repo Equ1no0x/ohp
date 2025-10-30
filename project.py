@@ -1092,76 +1092,97 @@ def _is_still_in_combat(act_log_watcher, timeout=5.0):
         print(f"[!] Error checking combat status: {e}")
         return False
 
+def _wait_for_combat_start(act_log_watcher, start_wait=5.0):
+    """Wait up to start_wait seconds for combat to begin."""
+    print("[*] Waiting for combat to begin...")
+    combat_wait_start = time.time()
+    while time.time() - combat_wait_start < start_wait:
+        if _is_still_in_combat(act_log_watcher):
+            print("[*] Combat detected, monitoring for defeats...")
+            return True
+        time.sleep(0.1)
+    return False
+
+def _update_kill_counts(defeated_target, target, valid_targets, kills, limits):
+    """Update kill counts and check completion after a defeat.
+    Returns: (updated_target_name, is_complete)"""
+    # Find the actual name from our target list that matches (preserving case)
+    defeated_target_lower = defeated_target.lower()
+    actual_name = next((name for name in valid_targets if name.lower() == defeated_target_lower), target)
+
+    if actual_name not in kills:
+        print(f"[!] Defeated {actual_name} but it wasn't in our target list!")
+        return actual_name, False
+
+    # Update kill counter
+    old_count = kills[actual_name]
+    new_count = min(limits[actual_name], kills[actual_name] + 1)
+    kills[actual_name] = new_count
+
+    # If the kill counted toward our total
+    if new_count > old_count:
+        progress_str = ", ".join(f"{name}: {kills[name]}/{limits[name]}" for name in limits)
+        print(f"[DEBUG][Combat] +1 {actual_name}")
+        print(f"[*] Progress: [{progress_str}]")
+
+        # Check if we've met all our target counts
+        all_complete = all(kills[name] >= limits[name] for name in limits)
+        if all_complete:
+            print("[+] All targets defeated, exiting combat")
+
+        return actual_name, all_complete
+
+    return actual_name, False
+
+def _check_combat_status(act_log_watcher, last_combat_time, timeout=2.0):
+    """Check if we're still in combat or if combat has ended.
+    Returns: (in_combat, combat_over)"""
+    if _is_still_in_combat(act_log_watcher):
+        return True, False
+    # If no combat for timeout seconds
+    elif time.time() - last_combat_time > timeout:
+        print("[DEBUG] No combat activity for 2 seconds, likely finished current engagement")
+        return False, True
+    return False, False
+
 def _await_defeat_line(target, keymap, kills, limits, valid_targets=None):
     """Wait for target defeat using ACT log monitoring"""
     global act_log_watcher
     
-    start_time = time.time()
     combat_timeout = 90  # Maximum time to wait for combat
-    checking_defeat = True
-    last_combat_time = time.time()  # Initialize this at the start
-    
-    # Wait for combat to start first
-    print("[*] Waiting for combat to begin...")
-    combat_wait_start = time.time()
-    while time.time() - combat_wait_start < 5.0:  # Give 5 seconds to start combat
-        if _is_still_in_combat(act_log_watcher):
-            print("[*] Combat detected, monitoring for defeats...")
-            last_combat_time = time.time()  # Update when combat is detected
-            break
-        time.sleep(0.1)
-    
+    start_time = time.time()
+    last_combat_time = time.time()
+
+    # Ensure we start in combat
+    if not _wait_for_combat_start(act_log_watcher):
+        return False
+
     while time.time() - start_time < combat_timeout:
-        # Check for any defeats
-        if checking_defeat:
-            act_result, defeated_target = _await_combat_completion_via_act(target, timeout_sec=2.0, valid_targets=valid_targets)
-            if act_result:
-                # Find the actual name from our target list that matches (preserving case)
-                defeated_target_lower = defeated_target.lower()
-                actual_name = next((name for name in valid_targets if name.lower() == defeated_target_lower), target)
-                
-                # Update kills for the actually defeated target
-                if actual_name in kills:
-                    # Update kill counter
-                    old_count = kills[actual_name]
-                    new_count = min(limits[actual_name], kills[actual_name] + 1)
-                    kills[actual_name] = new_count
-                    
-                    # If the kill counted toward our total
-                    if new_count > old_count:
-                        progress_str = ", ".join(f"{name}: {kills[name]}/{limits[name]}" for name in limits)
-                        print(f"[DEBUG][Combat] +1 {actual_name}")
-                        print(f"[*] Progress: [{progress_str}]")
-                        
-                        # Check if we've met all our target counts
-                        all_complete = all(kills[name] >= limits[name] for name in limits)
-                        if all_complete:
-                            print("[+] All targets defeated, exiting combat")
-                            return True
-                    
-                    # If we're still in combat, keep monitoring
-                    if _is_still_in_combat(act_log_watcher):
-                        last_combat_time = time.time()
-                        print("[DEBUG] Got a defeat but still in combat, continuing to monitor...")
-                        checking_defeat = True
-                        continue
-                    else:
-                        print("[DEBUG] Combat appears to be over")
-                        return True
-                else:
-                    print(f"[!] Defeated {actual_name} but it wasn't in our target list!")
-                    checking_defeat = True  # Keep checking for valid defeats
-                    continue
-            elif _is_still_in_combat(act_log_watcher):
-                # Still in combat but no defeat detected
-                last_combat_time = time.time()
-                checking_defeat = True
-                continue
-            elif time.time() - last_combat_time > 2.0:  # If no combat for 2 seconds
-                # No recent combat activity and no defeat detected
-                print("[DEBUG] No combat activity for 2 seconds, likely finished current engagement")
-                return False
+        # Check for defeats
+        act_result, defeated_target = _await_combat_completion_via_act(target, timeout_sec=2.0, valid_targets=valid_targets)
         
+        if act_result:
+            actual_name, is_complete = _update_kill_counts(defeated_target, target, valid_targets, kills, limits)
+            if is_complete:
+                return True
+                
+            # Update combat status and continue monitoring
+            in_combat = _is_still_in_combat(act_log_watcher)
+            if in_combat:
+                last_combat_time = time.time()
+                print("[DEBUG] Got a defeat but still in combat, continuing to monitor...")
+            else:
+                print("[DEBUG] Combat appears to be over")
+                return True
+
+        else:
+            # Check if we're still in combat or should exit
+            in_combat, combat_over = _check_combat_status(act_log_watcher, last_combat_time)
+            if in_combat:
+                last_combat_time = time.time()
+            elif combat_over:
+                return False
+
         # Brief pause before next check
         time.sleep(0.1)
     
