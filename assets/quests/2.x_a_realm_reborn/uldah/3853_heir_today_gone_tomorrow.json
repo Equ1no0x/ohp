@@ -1,0 +1,49 @@
+{
+	"1": [
+		{ "comment": "Accept quest" },
+		{ "vnav": ["93.918 0.340 -271.856"] },
+		{ "interaction_type": ["npc_interact", {"name": "Leofric"}] }
+	],
+	"2": [
+		{ "vnav": ["179.883 4.461 -32.326", 65000, 10] }
+	],
+	"3": [
+		{ "command": "/ac Sprint" },
+		{ "vnav": [ "159.858 28.541 -6.906", 30000, 10]  },
+		{ "command": "remove_target" },
+		{ "rand": [3500, 5000]},
+		{ "vnav": [ "148.129 28.623 -14.555", 5000, 10]  },
+		{
+			"combat": {
+				"region": "783, 30, 1180, 48",
+				"names": ["Quiveron"],
+				"style": "full",
+				"counts": [2]
+			}
+		}
+	],
+	"4": [
+		{ "vnav": [ "139.666 28.694 -7.487", 5000, 2.5]  },
+		{ "rand": [333, 555]},
+		{
+			"combat": {
+				"region": "783, 30, 1180, 48",
+				"names": ["Quiveron"],
+				"style": "full",
+				"counts": [1]
+			}
+		}
+	],
+	"5": [
+		{ "rand": [333, 555]},
+		{ "vnav": [ "126.675 28.651 -11.123", 5000, 1.6] },
+		{
+			"combat": {
+				"region": "783, 30, 1180, 48",
+				"names": ["Baron von Quiveron III Esquire"],
+				"style": "rotation",
+				"counts": [1]
+			}
+		}
+	]
+}

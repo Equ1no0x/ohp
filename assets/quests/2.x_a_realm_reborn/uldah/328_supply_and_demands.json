@@ -1,0 +1,15 @@
+{
+	"1": [
+		{ "comment": "Accept quest" },
+		{ "map": "western_thanalan_horizon", "npc": "dadanen" },
+		{ "interaction_type": ["npc_interact", {"name": "Dadanen"}] }
+	],
+	"2": [
+		{ "comment": "WalkTo Drunken Stag" },
+		{ "vnav": ["239.527 58.357 -161.353", 30000, 2.2] },
+		{ "interaction_type": ["npc_interact", {"name": "Drunken Stag"}] }
+	],
+	"3": [
+		{ "comment": "End of quest file" }
+	]
+}

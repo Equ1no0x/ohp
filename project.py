@@ -1,76 +1,10 @@
-def _cycle_target_selection(keymap):
-    execute_command_sequence(["press", "VK_TAB", "rand", 56, 126, "release", "VK_TAB"], keymap)
-    time.sleep(1.5)
-
-def _pick_target_via_ocr(candidates, limits, kills, region):
-    for name in candidates:
-        if perform_ocr_and_find_text(name, region):
-            if kills[name] >= limits[name]:
-                print(f"[i] Already met quota for {name}, skipping.")
-                continue
-            return name
-    return None
-
-def _move_mouse_to_last_detection():
-    if last_detection_type == "ocr" and last_ocr_match_center:
-        move_mouse_hardware(*last_ocr_match_center)
-        time.sleep(0.2)
-        return True
-    if last_detection_type == "img" and last_img_match_center:
-        move_mouse_hardware(*last_img_match_center)
-        time.sleep(0.2)
-        return True
-    print("[!] No valid target position available for mouse move.")
-    return False
-
-def _open_with_mouse(keymap):
-    execute_command_sequence(["press", "VK_RBUTTON", "rand", 40, 80, "release", "VK_RBUTTON"], keymap)
-    time.sleep(0.3)
-    execute_command_sequence(["press", "VK_LBUTTON", "rand", 40, 80, "release", "VK_LBUTTON"], keymap)
-
-def _await_defeat_line(target, keymap, kills, limits):
-    if await_battle_defeat(target.lower(), keymap, interval_ms=1000, timeout_ms=90000):
-        kills[target] = min(limits[target], kills[target] + 1)
-        progress_str = ", ".join(f"{name}: {kills[name]}/{limits[name]}" for name in limits)
-        print(f"[*] {target} defeated. Progress [{progress_str}]")
-        return True
-    print(f"[!] Timed out waiting for Battle chat defeat line for {target}.")
-    return False
-
-def _rotate_for_additional_targets(keymap):
-    execute_command_sequence(["press", "VK_RIGHT", "rand", 156, 256, "release", "VK_RIGHT"], keymap)
-    time.sleep(0.3)
-
-def _combat_timed_out(start_time, limit_seconds=300):
-    if time.time() - start_time > limit_seconds:
-        print("[!] Combat timed out.")
-        return True
-    return False
-
-def _handle_no_target_found():
-    print("[!] No valid target found; waiting briefly before retrying...")
-    time.sleep(0.5)
-
-def _finalize_combat(end_command, keymap):
-    print(f"[+] Combat finished. Returning to scout position: {end_command}")
-    if end_command:
-        send_chat_command(end_command, keymap)
-
-def _engage_target(name, keymap, kills, limits):
-    print(f"[*] Engaging {name}...")
-    _move_mouse_to_last_detection()
-    _open_with_mouse(keymap)
-    start_combat(keymap)
-    time.sleep(0.5)
-    _await_defeat_line(name, keymap, kills, limits)
-    end_combat(keymap)
-
 import ctypes
 import random
 import time
 import json
 import os
-import pyperclip
+from datetime import datetime, timezone, timedelta
+import pyperclip 
 import psutil
 import win32gui
 import win32con
@@ -81,6 +15,9 @@ import subprocess
 import pytesseract
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 import sys
+
+# Import ACT log watcher module
+from modules.act_log_watcher import ACTLogWatcher
 
 # Default success patterns for vnav path completion
 VNAV_SUCCESS_PATTERNS = ["[INF] [vnavmesh] Pathfinding complete"]
@@ -157,7 +94,7 @@ OCR_DEBUG_MAX_LINES = 1        # how many OCR "lines" to print
 # Screen region of the in-game coordinates widget: (left, top, right, bottom)
 VNAV_COORDS_REGION = (1298, 162, 1685, 181) # adjust if your UI scale changes
 VNAV_DEFAULT_TOLERANCE = 1.6 # meters (vector3 distance)
-VNAV_OCR_INTERVAL_MS = 250 # how often to re-OCR the coords
+VNAV_OCR_INTERVAL_MS = 100 # how often to re-OCR the coords (reduced from 250ms for more responsive updates)
 _coord_num_re = re.compile(r'[-+]?\d+(?:\.\d+)?')
 
 mouse_buttons = {
@@ -1014,7 +951,6 @@ def save_progress(file_path: str, step: int) -> None:
     _write_progress_entry(file_path, step, completed=False, update_current=True)
 
 def resolve_goto_chain(file, step):
-    """Follow goto-only steps until a real step is found."""
     visited = set()
     while True:
         data = load_json(file)
@@ -1042,12 +978,205 @@ def resolve_goto_chain(file, step):
             break
     return file, step
 
-def start_combat(keymap):
-    print("[*] Starting combat rotation...")
-    send_chat_command("/rotation Manual", keymap)
-    time.sleep(0.2)
-    send_chat_command("/bmrai on", keymap)
-    time.sleep(0.2)
+def _cycle_target_selection(keymap):
+    execute_command_sequence(["press", "VK_TAB", "rand", 56, 126, "release", "VK_TAB"], keymap)
+    time.sleep(1.5)
+
+def _pick_target_via_ocr(candidates, limits, kills, region, combat_type=None):
+    for name in candidates:
+        found = perform_ocr_and_find_text(name, region)
+        
+        if found:
+            # Check if this was a partial match of a longer name
+            # e.g. if looking for "Quiveron" but found "Quiveron guard", don't count it
+            # as "Quiveron" until we've seen a defeat message
+            if kills[name] >= limits[name]:
+                print(f"[i] Already met quota for {name}, skipping.")
+                continue
+            
+            return name
+    return None
+
+def _move_mouse_to_last_detection():
+    if last_detection_type == "ocr" and last_ocr_match_center:
+        move_mouse_hardware(*last_ocr_match_center)
+        time.sleep(0.2)
+        return True
+    if last_detection_type == "img" and last_img_match_center:
+        move_mouse_hardware(*last_img_match_center)
+        time.sleep(0.2)
+        return True
+    print("[!] No valid target position available for mouse move.")
+    return False
+
+def _open_with_mouse(keymap):
+    execute_command_sequence(["press", "VK_RBUTTON", "rand", 40, 80, "release", "VK_RBUTTON"], keymap)
+    time.sleep(0.3)
+    execute_command_sequence(["press", "VK_LBUTTON", "rand", 40, 80, "release", "VK_LBUTTON"], keymap)
+
+def _is_still_in_combat(act_log_watcher, timeout=5.0):
+    try:
+        with act_log_watcher._combat_log.open("r", encoding="utf-8") as f:
+            lines = f.readlines()[-20:]  # Get last 20 messages
+            
+        if not lines:
+            return False
+
+        # Parse last line's timestamp to get timezone info
+        latest_ts = None
+        for line in reversed(lines):
+            try:
+                ts_str = line.split(" | ", 1)[0].strip()
+                latest_ts = datetime.fromisoformat(ts_str)
+                break
+            except Exception:
+                continue
+                
+        if not latest_ts:
+            return False
+            
+        # Use same timezone as log files for comparison
+        current_time = datetime.now(latest_ts.tzinfo)
+        cutoff_time = current_time - timedelta(seconds=timeout)
+        
+        for line in reversed(lines):  # Start with most recent
+            try:
+                timestamp, message = line.split(" | ", 1)
+                # Parse actual timestamp for accurate comparison
+                ts = datetime.fromisoformat(timestamp.strip())
+                
+                # Skip messages older than our cutoff
+                if ts < cutoff_time:
+                    continue
+                    
+                msg_lower = message.lower().strip()
+                if any(x in msg_lower for x in ["hits you for", "you hit"]):
+                    return True
+            except Exception as e:
+                print(f"[DEBUG] Error parsing combat line: {e}")
+                continue
+                
+        return False
+    except Exception as e:
+        print(f"[!] Error checking combat status: {e}")
+        return False
+
+def _await_defeat_line(target, keymap, kills, limits, valid_targets=None):
+    """Wait for target defeat using ACT log monitoring"""
+    global act_log_watcher
+    
+    start_time = time.time()
+    combat_timeout = 90  # Maximum time to wait for combat
+    checking_defeat = True
+    last_combat_time = time.time()  # Initialize this at the start
+    
+    # Wait for combat to start first
+    print("[*] Waiting for combat to begin...")
+    combat_wait_start = time.time()
+    while time.time() - combat_wait_start < 5.0:  # Give 5 seconds to start combat
+        if _is_still_in_combat(act_log_watcher):
+            print("[*] Combat detected, monitoring for defeats...")
+            last_combat_time = time.time()  # Update when combat is detected
+            break
+        time.sleep(0.1)
+    
+    while time.time() - start_time < combat_timeout:
+        # Check for any defeats
+        if checking_defeat:
+            act_result, defeated_target = _await_combat_completion_via_act(target, timeout_sec=2.0, valid_targets=valid_targets)
+            if act_result:
+                # Find the actual name from our target list that matches (preserving case)
+                defeated_target_lower = defeated_target.lower()
+                actual_name = next((name for name in valid_targets if name.lower() == defeated_target_lower), target)
+                
+                # Update kills for the actually defeated target
+                if actual_name in kills:
+                    # Update kill counter
+                    old_count = kills[actual_name]
+                    new_count = min(limits[actual_name], kills[actual_name] + 1)
+                    kills[actual_name] = new_count
+                    
+                    # If the kill counted toward our total
+                    if new_count > old_count:
+                        progress_str = ", ".join(f"{name}: {kills[name]}/{limits[name]}" for name in limits)
+                        print(f"[DEBUG][Combat] +1 {actual_name}")
+                        print(f"[*] Progress: [{progress_str}]")
+                        
+                        # Check if we've met all our target counts
+                        all_complete = all(kills[name] >= limits[name] for name in limits)
+                        if all_complete:
+                            print("[+] All targets defeated, exiting combat")
+                            return True
+                    
+                    # If we're still in combat, keep monitoring
+                    if _is_still_in_combat(act_log_watcher):
+                        last_combat_time = time.time()
+                        print("[DEBUG] Got a defeat but still in combat, continuing to monitor...")
+                        checking_defeat = True
+                        continue
+                    else:
+                        print("[DEBUG] Combat appears to be over")
+                        return True
+                else:
+                    print(f"[!] Defeated {actual_name} but it wasn't in our target list!")
+                    checking_defeat = True  # Keep checking for valid defeats
+                    continue
+            elif _is_still_in_combat(act_log_watcher):
+                # Still in combat but no defeat detected
+                last_combat_time = time.time()
+                checking_defeat = True
+                continue
+            elif time.time() - last_combat_time > 2.0:  # If no combat for 2 seconds
+                # No recent combat activity and no defeat detected
+                print("[DEBUG] No combat activity for 2 seconds, likely finished current engagement")
+                return False
+        
+        # Brief pause before next check
+        time.sleep(0.1)
+    
+    print(f"[!] Combat monitoring timed out after {combat_timeout}s")
+    return False
+
+def _rotate_for_additional_targets(keymap):
+    execute_command_sequence(["press", "VK_RIGHT", "rand", 156, 256, "release", "VK_RIGHT"], keymap)
+    time.sleep(0.3)
+
+def _combat_timed_out(start_time, limit_seconds=300):
+    if time.time() - start_time > limit_seconds:
+        print("[!] Combat timed out.")
+        return True
+    return False
+
+def _handle_no_target_found():
+    print("[!] No valid target found; waiting briefly before retrying...")
+    time.sleep(0.5)
+
+def _finalize_combat(end_command, keymap):
+    print(f"[+] Combat finished. Returning to scout position: {end_command}")
+    if end_command:
+        send_chat_command(end_command, keymap)
+
+def _engage_target(name, keymap, kills, limits, style='full', valid_targets=None):
+    print(f"[*] Engaging {name}...")
+    _move_mouse_to_last_detection()
+    _open_with_mouse(keymap)
+    start_combat(keymap, style)
+    time.sleep(0.5)
+    # Pass all valid targets for completion
+    _await_defeat_line(name, keymap, kills, limits, valid_targets=valid_targets)
+    end_combat(keymap)
+
+def start_combat(keymap, style="rotation"):
+    print(f"[*] Starting combat rotation (style={style})...")
+
+    if style in ("full", "rotation"):
+        send_chat_command("/rotation Manual", keymap)
+        time.sleep(0.2)
+
+    if style in ("full", "ai"):
+        send_chat_command("/bmrai on", keymap)
+        time.sleep(0.2)
+
     send_chat_command("/vnav movetarget", keymap)
     time.sleep(0.2)
 
@@ -1067,6 +1196,8 @@ def handle_combat_step(combat_data, keymap):
     names = combat_data.get('names', [])
     counts = combat_data.get('counts', [])
     end_command = combat_data.get('end_command')
+    style = combat_data.get('style', 'full')  # Default to 'full' if not specified
+    combat_type = combat_data.get('type')     # Default to None if not specified
 
     target_limits = _build_target_limits(names, counts)
     if not target_limits:
@@ -1074,22 +1205,24 @@ def handle_combat_step(combat_data, keymap):
         return
 
     print(f"[*] Combat started. Targets: {target_limits}")
+    print(f"[*] Combat type: {combat_type or 'default'}, Style: {style}")
 
     kills = {name: 0 for name in target_limits}
     start_time = time.time()
     name_region = (750, 31, 1190, 52)
 
     while True:
+        # Check if all targets are complete before doing anything else
         remaining = [name for name, limit in target_limits.items() if kills[name] < limit]
         if not remaining:
             print('[+] All requested kills completed.')
             break
 
         _cycle_target_selection(keymap)
-        target = _pick_target_via_ocr(remaining, target_limits, kills, name_region)
+        target = _pick_target_via_ocr(remaining, target_limits, kills, name_region, combat_type)
 
         if target:
-            _engage_target(target, keymap, kills, target_limits)
+            _engage_target(target, keymap, kills, target_limits, style=style, valid_targets=names)
         else:
             _handle_no_target_found()
 
@@ -1243,7 +1376,7 @@ def execute_one_step(step, keymap):
     # These are set/used by your existing OCR/IMG helpers and mouse movers.
     global last_ocr_text, last_ocr_region, last_img_template
     global last_detection_type, last_ocr_match_center, last_img_match_center
-
+    
     if not isinstance(step, dict):
         return False
 
@@ -1422,62 +1555,80 @@ def execute_one_step(step, keymap):
     # Not a primitive we handle here
     return False
 
-# --- Battle chat helpers ---
-BATTLE_CHAT_REGION = (30, 951, 590, 967)  # left, top, right, bottom (as requested)
+# --- Combat monitoring via ACT logs ---
+def _await_combat_completion_via_act(target_name, timeout_sec=90, valid_targets=None):
+    """Wait for combat completion using ACT logs
+    
+    Args:
+        target_name: Primary target we're tracking progress for
+        timeout_sec: How long to wait for completion
+        valid_targets: Optional list of alternative target names that can count as completion
+        
+    Returns:
+        tuple: (bool, str) - (Success, Defeated target name) or (False, None) on timeout/error
+    """
+    if not act_log_watcher:
+        print("[!] ACT log watcher not available")
+        return False, None
+    
+    try:
+        # Convert all targets to lowercase for comparison
+        valid_targets_lower = {t.lower(): t for t in (valid_targets or [target_name])}
+        
+        start_time = time.time()
+        last_combat_time = None  # Will be set when we first detect combat
+        combat_started = False   # Flag to track if we've entered combat
+        combat_reported = False  # Flag to avoid duplicate combat state messages
+        
+        # Get the current timestamp from ACT logs
+        current_ts = None
+        try:
+            with act_log_watcher._combat_log.open("r", encoding="utf-8") as f:
+                lines = f.readlines()[-1:]  # Just get last line
+                if lines:
+                    current_ts = lines[0].split(" | ", 1)[0].strip()
+        except Exception:
+            pass
+            
+        no_combat_start = None  # Track when we first noticed no combat after being in combat
+        no_defeat_start = time.time()  # Track when we started waiting for defeat
+        
+        while (time.time() - start_time) < timeout_sec:
+            time_without_defeat = time.time() - no_defeat_start
+            if time_without_defeat > 60.0:  # 1 minute timeout for no defeats
+                return False, None
 
-def _click_battle_tab(keymap) -> bool:
-    if perform_img_search("assets/chat_battle.png"):
-        if last_img_match_center:
-            move_mouse_hardware(*last_img_match_center)
-            execute_command_sequence(
-                ["press", "VK_LBUTTON", "rand", 40, 80, "release", "VK_LBUTTON"], keymap
-            )
-            time.sleep(0.2)
-            return True
-    print("[!] Battle tab image not found; continuing without click.")
-    return False
+            # Check combat status
+            in_combat = _is_still_in_combat(act_log_watcher)
+            if in_combat:
+                combat_started = True  # We've detected combat activity
+                if not combat_reported:
+                    print("[DEBUG] In combat")
+                    combat_reported = True
+                last_combat_time = time.time()
+                no_combat_start = None  # Reset the no-combat timer
+            elif combat_started:  # Only check for combat exit if we were in combat first
+                # Start tracking time since last combat if we haven't already
+                if no_combat_start is None:
+                    no_combat_start = time.time()
+                    combat_reported = False  # Reset so we can report next combat entry
+                elif time.time() - no_combat_start > 2.0:  # If no combat for 2 seconds
+                    return False, None
+                
+            # Check if any valid target was defeated since our timestamp
+            for target_lower in valid_targets_lower:
+                # Use a shorter timeout (2s) for each individual check since we're in a loop
+                result, defeated_name = act_log_watcher.check_combat_completion(target_lower, timeout=2.0, since_timestamp=current_ts)
+                if result:
+                    return True, defeated_name
 
-def _battle_defeat_phrase(monster_name: str) -> str:
-    return f"you defeat the {monster_name}".strip().lower()
-
-def await_battle_defeat(monster_name: str, keymap,
-                        interval_ms: int | None = None,           # legacy single-interval
-                        timeout_ms: int = 90000,
-                        fuzzy_threshold: float = 0.80,
-                        poll_min_ms: int = 150, poll_max_ms: int = 250,  # NEW fast polling window
-                        ocr_timeout_sec: float = 0.8) -> bool:           # NEW per-scan OCR timeout
-
-    _click_battle_tab(keymap)
-
-    phrase = _battle_defeat_phrase(monster_name)  # already lower-cased / no trailing '.'
-
-    def _sleep():
-        # keep some jitter so we don't alias the chat rendering cadence
-        delay = (interval_ms if interval_ms is not None else random.randint(poll_min_ms, poll_max_ms))
-        time.sleep(delay / 1000.0)
-        return delay
-
-    # Arm: require the line to be absent first
-    elapsed = 0
-    while elapsed < timeout_ms:
-        found = perform_ocr_find_text_fuzzy(phrase, BATTLE_CHAT_REGION,
-                                            threshold=fuzzy_threshold,
-                                            ocr_timeout_sec=ocr_timeout_sec)
-        if not found:
-            break
-        elapsed += _sleep()
-
-    # Wait for it to appear
-    elapsed = 0
-    while elapsed < timeout_ms:
-        found = perform_ocr_find_text_fuzzy(phrase, BATTLE_CHAT_REGION,
-                                            threshold=fuzzy_threshold,
-                                            ocr_timeout_sec=ocr_timeout_sec)
-        if found:
-            return True
-        elapsed += _sleep()
-
-    return False
+            # Only sleep briefly between checks
+            time.sleep(0.1)
+            
+        return False, None
+    except Exception as e:
+        print(f"[!] Error monitoring ACT logs: {e}")
+        return False, None
 
 # --- OCR Debugging chat helpers ---
 def _norm_token_generic(s: str) -> str:
@@ -1542,6 +1693,9 @@ def _dump_ocr_debug(results, region=None, target=None):
 # === Main Logic ===
 single_run_mode = False
 
+# Global ACT log watcher instance
+act_log_watcher = None
+
 def reload_jsons():
     global commands_data, locations_data, keymap, npc_data, actions_data, interaction_types
 
@@ -1587,6 +1741,27 @@ def _load_classes_index():
 # Game window
 TARGET_PROCESS = "ffxiv_dx11.exe"
 hwnd = find_process_window(TARGET_PROCESS)
+
+# Initialize ACT log watcher
+try:
+    act_log_watcher = ACTLogWatcher()
+    print("[+] ACT log watcher initialized successfully")
+    print(f"[+] ACT Logs directory: {act_log_watcher._log_dir}")
+    print(f"[+] Combat events will be written to: {act_log_watcher._combat_log}")
+    
+    # Register a debug callback to show combat events in main console
+    def debug_combat_callback(monster_name: str):
+        print(f"[DEBUG][Combat] Defeated: {monster_name}")
+    
+    act_log_watcher.register_combat_callback(debug_combat_callback)
+    
+    # Start the watcher
+    act_log_watcher.start()
+    print("[+] Combat logging active")
+    
+except Exception as e:
+    print(f"[!] Failed to initialize ACT log watcher: {e}")
+    act_log_watcher = None
 
 # --- Job selection via classes.json (single canonical block) ---
 classes_index = _load_classes_index()  # {"pld": "pld.json", "paladin": "pld.json", ...}

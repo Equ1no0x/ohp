@@ -1,0 +1,32 @@
+{
+	"1": [
+		{ "comment": "Accept quest" },
+		{ "map": "western_thanalan", "npc": "fufulupa" },
+		{ "interaction_type": ["npc_interact", {"name": "Fufulupa"}] },
+		{ "interaction_type": ["text_select", {"text": "Last Letter to Lost Hope"}, {"region": "810, 490, 1000, 590"}] }
+	],
+	"2": [
+		{ "comment": "Activate chocobokeeper Horizon" },
+		{ "map": "western_thanalan_horizon", "npc": "chocobokeep" },
+		{ "interaction_type": ["npc_interact", {"name": "Chocobokeep"}] },
+		{ "command": "escape" }
+	],
+	"3": [
+		{ "vnav": ["263.744 53.728 -12.175", -1, 5] }
+	],
+	"4": [
+		{ "comment": "WalkTo Central Thanalan" },
+		{ "destination": ["-393.704 -0.179 95.002", -1, 10] },
+		{ "comment": "WalkTo Seseli" },
+		{ "vnav": ["-256.826 -0.283 26.477"] },
+		{ "interaction_type": ["npc_interact", {"name": "Seseli"}] }
+	],
+	"5": [
+		{ "comment": "WalkTo Leofric" },
+		{ "vnav": ["93.918 0.340 -271.856"] },
+		{ "interaction_type": ["npc_interact", {"name": "Leofric"}] }
+	],
+	"6": [
+		{ "comment": "End of quest file" }
+	]
+}

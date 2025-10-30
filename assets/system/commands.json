@@ -20,6 +20,13 @@
 		"release", "VK_ESCAPE",
 		"rand", 222, 333		
 	],
+	"remove_target":[
+		"rand", 222, 333,
+		"press", "VK_NUMPAD0",
+		"rand", 56, 156,
+		"release", "VK_NUMPAD0",
+		"rand", 222, 333
+	],
 	"target_swap":[
 		"rand", 222, 333,
 		"press", "VK_TAB",

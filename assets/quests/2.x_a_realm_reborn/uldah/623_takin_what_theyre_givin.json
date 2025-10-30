@@ -1,0 +1,57 @@
+{
+	"1": [
+		{ "map": "uldah", "location": "gladiators_guild_as" },
+		{ "interaction_type": ["use_aethernet_shard", {"name": "Adventurers' Guild"}] },
+		{ "map": "uldah", "location": "adventurers_guild_tp" }
+	],
+	"2": [
+		{ "comment": "Accept quest" },
+		{ "map": "uldah", "npc": "momodi" },
+		{ "interaction_type": ["npc_interact", {"name": "Momodi"}] }
+	],
+	"3": [
+		{ "map": "uldah", "npc": "chocobokeep" },
+		{ "interaction_type": ["npc_interact", {"name": "Mimigun"}] },
+		{ "ocr": "Chocobo Porter" },
+		{ "region": "815, 500, 935, 570" },
+		{ "await": [2000, "ocr", true, "", 120000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [56, 126]},
+		{ "command": "short_lclick" }
+	],
+	"4": [
+		{ "interaction_type": ["open_tutorial"] },
+		{ "interaction_type": ["close_tutorial"] },
+		{ "command": "escape" }
+	],
+	"5": [
+		{ "interaction_type": ["npc_interact", {"name": "Mimigun"}] },
+		{ "ocr": "Rent a Chocobo" },
+		{ "region": "815, 500, 935, 570" },
+		{ "await": [2000, "ocr", true, "", 120000] },
+		{ "mouse_move": "move_to" },
+		{ "rand": [56, 126]},
+		{ "command": "short_lclick" }
+	],
+	"6": [
+		{ "interaction_type": ["open_tutorial"] },
+		{ "interaction_type": ["close_tutorial"] },
+		{ "command": "escape" }
+	],
+	"7": [
+		{ "interaction_type": ["npc_interact", {"name": "Mimigun"}] },
+		{ "interaction_type": ["rent_hire", {"name": "Horizon"}] }
+	],
+	"8": [
+		{ "interaction_type": ["open_tutorial"] },
+		{ "interaction_type": ["close_tutorial"] },
+		{ "destination": ["68.473 45.142 -202.915", 90000, 2.5] }
+	],
+	"9": [
+		{ "map": "western_thanalan_horizon", "npc": "dadanen" },
+		{ "interaction_type": ["npc_interact", {"name": "Dadanen"}] }
+	],
+	"10": [
+		{ "comment": "End of quest file" }
+	]
+}

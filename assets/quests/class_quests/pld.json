@@ -9,5 +9,11 @@
 	{ "quest": "3852_prudence_at_this_junction", "source": "shared" },
 	{ "quest": "307_out_of_house_and_home", "source": "shared" },
 	{ "quest": "320_way_down_in_the_hole", "source": "shared" },
-	{ "quest": "256_kicking_the_hornets_nest", "source": "class" }
+	{ "quest": "256_kicking_the_hornets_nest", "source": "class" },
+	{ "quest": "623_takin_what_theyre_givin", "source": "shared" },
+	{ "quest": "328_supply_and_demands", "source": "shared" },
+	{ "quest": "503_give_it_to_me_raw", "source": "shared" },
+	{ "quest": "329_the_perfect_swarm", "source": "shared" },
+	{ "quest": "330_last_letter_to_lost_hope", "source": "shared" },
+	{ "quest": "3853_heir_today_gone_tomorrow", "source": "shared" }
 ]
