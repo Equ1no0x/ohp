@@ -165,38 +165,68 @@ class ACTLogWatcher:
             print(f"[!] Error reading recent messages: {e}")
             return []
 
-    def _check_raw_combat_log(self, target_lower: str, since_timestamp: Optional[str] = None) -> tuple[bool, str | None]:
+    def _parse_defeat_message(self, message: str) -> str | None:
+        """Extract monster name from a defeat message.
+        
+        Args:
+            message: The combat log message to parse
+            
+        Returns:
+            The monster name if found, None otherwise
+        """
+        msg_lower = message.lower()
+        if self.MSG_DEFEAT not in msg_lower:
+            return None
+            
+        # Find appropriate marker and extract monster name
+        marker = self.MSG_DEFEAT_THE if self.MSG_DEFEAT_THE in msg_lower else self.MSG_DEFEAT
+        start_index = message.lower().find(marker) + len(marker)
+        return message[start_index:].rstrip('.').strip()
+
+    def _is_message_relevant(self, timestamp: str, since_timestamp: Optional[str]) -> bool:
+        """Check if a message's timestamp is within our search window."""
+        return not since_timestamp or timestamp > since_timestamp
+
+    def _check_raw_combat_log(self, target_lower: str, since_timestamp: Optional[str] = None) -> tuple[bool, str | None, str | None]:
         """Check raw combat log for recent defeats.
         
         Args:
             target_lower: Lowercase target name to search for
             since_timestamp: Only check events after this timestamp (ACT format)
+            
+        Returns:
+            Tuple of (success, monster_name, timestamp)
         """
+        # Handle file access errors early
         try:
             with self._combat_log.open("r", encoding="utf-8") as f:
                 lines = f.readlines()[-50:]  # Check last 50 lines
-                
-            for line in reversed(lines):
-                try:
-                    timestamp, message = line.split(" | ", 1)
-                    if since_timestamp and timestamp <= since_timestamp:
-                        continue  # Skip older messages
-                        
-                    message = message.strip()
-                    msg_lower = message.lower()
-                    if self.MSG_DEFEAT in msg_lower:
-                        if self.MSG_DEFEAT_THE in msg_lower:
-                            monster = msg_lower.split(self.MSG_DEFEAT_THE)[1].rstrip('.')
-                        else:
-                            monster = msg_lower.split(self.MSG_DEFEAT)[1].rstrip('.')
-                        
-                        if target_lower in monster:
-                            print(f"[DEBUG] Found defeat in raw log ({timestamp}): {message}")
-                            return True, monster, timestamp
-                except Exception:
-                    continue  # Skip malformed lines
         except Exception as e:
-            print(f"[!] Error checking raw combat log: {e}")
+            print(f"[!] Error reading combat log: {e}")
+            return False, None, None
+            
+        # Process each line
+        for line in reversed(lines):
+            # Split line into timestamp and message
+            try:
+                timestamp, message = line.split(" | ", 1)
+            except Exception:
+                continue  # Skip malformed lines
+                
+            # Check timestamp first
+            if not self._is_message_relevant(timestamp, since_timestamp):
+                continue
+                
+            # Try to extract monster name
+            monster_name = self._parse_defeat_message(message.strip())
+            if not monster_name:
+                continue
+                
+            # Check if this is our target
+            if target_lower in monster_name.lower():
+                print(f"[DEBUG] Found defeat in raw log ({timestamp}): {message.strip()}")
+                return True, monster_name, timestamp
+                
         return False, None, None
     
     def _check_structured_events(self, target_lower: str, since_timestamp: Optional[str]) -> tuple[bool, str | None]:
