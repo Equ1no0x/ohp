@@ -1145,6 +1145,40 @@ def _check_combat_status(act_log_watcher, last_combat_time, timeout=2.0):
         return False, True
     return False, False
 
+def _process_defeat(act_log_watcher, defeated_target, target, valid_targets, kills, limits, last_combat_time):
+    """Process a defeat event and update combat status.
+    Returns: (should_exit, new_last_combat_time, completion_status)"""
+    actual_name, is_complete = _update_kill_counts(defeated_target, target, valid_targets, kills, limits)
+    
+    if is_complete:
+        return True, last_combat_time, True
+        
+    # Check if combat continues
+    if _is_still_in_combat(act_log_watcher):
+        print("[DEBUG] Got a defeat but still in combat, continuing to monitor...")
+        return False, time.time(), False
+    
+    print("[DEBUG] Combat appears to be over")
+    return True, last_combat_time, True
+
+def _monitor_combat_cycle(act_log_watcher, target, valid_targets, kills, limits, last_combat_time):
+    """Run one cycle of combat monitoring.
+    Returns: (should_exit, new_last_combat_time, completion_status)"""
+    # Check for defeats
+    act_result, defeated_target = _await_combat_completion_via_act(target, timeout_sec=2.0, valid_targets=valid_targets)
+    
+    if act_result:
+        return _process_defeat(act_log_watcher, defeated_target, target, valid_targets, kills, limits, last_combat_time)
+        
+    # No defeat - check combat status
+    in_combat, combat_over = _check_combat_status(act_log_watcher, last_combat_time)
+    if in_combat:
+        return False, time.time(), False
+    if combat_over:
+        return True, last_combat_time, False
+        
+    return False, last_combat_time, False
+
 def _await_defeat_line(target, keymap, kills, limits, valid_targets=None):
     """Wait for target defeat using ACT log monitoring"""
     global act_log_watcher
@@ -1157,33 +1191,15 @@ def _await_defeat_line(target, keymap, kills, limits, valid_targets=None):
     if not _wait_for_combat_start(act_log_watcher):
         return False
 
+    # Monitor combat until timeout
     while time.time() - start_time < combat_timeout:
-        # Check for defeats
-        act_result, defeated_target = _await_combat_completion_via_act(target, timeout_sec=2.0, valid_targets=valid_targets)
+        should_exit, last_combat_time, completed = _monitor_combat_cycle(
+            act_log_watcher, target, valid_targets, kills, limits, last_combat_time
+        )
         
-        if act_result:
-            actual_name, is_complete = _update_kill_counts(defeated_target, target, valid_targets, kills, limits)
-            if is_complete:
-                return True
-                
-            # Update combat status and continue monitoring
-            in_combat = _is_still_in_combat(act_log_watcher)
-            if in_combat:
-                last_combat_time = time.time()
-                print("[DEBUG] Got a defeat but still in combat, continuing to monitor...")
-            else:
-                print("[DEBUG] Combat appears to be over")
-                return True
-
-        else:
-            # Check if we're still in combat or should exit
-            in_combat, combat_over = _check_combat_status(act_log_watcher, last_combat_time)
-            if in_combat:
-                last_combat_time = time.time()
-            elif combat_over:
-                return False
-
-        # Brief pause before next check
+        if should_exit:
+            return completed
+            
         time.sleep(0.1)
     
     print(f"[!] Combat monitoring timed out after {combat_timeout}s")
@@ -1980,44 +1996,66 @@ def _resume_from_saved_step() -> bool:
     print(f"[*] RESUME → {os.path.basename(current_file)} step {current_step}")
     return True
 
+def _is_valid_manifest_entry(entry) -> tuple[bool, str, str]:
+    """Check if a manifest entry is valid and extract key data.
+    Returns: (is_valid, quest_key, source)"""
+    if not isinstance(entry, dict):
+        return False, "", ""
+        
+    quest_key = str(entry.get("quest") or "").strip().lower()
+    if not quest_key:
+        return False, "", ""
+        
+    source = str(entry.get("source") or "class").lower()
+    return True, quest_key, source
+
+def _check_quest_incomplete(root: dict, quest_key: str, source: str) -> bool:
+    """Check if a quest is incomplete based on progress data."""
+    if source == "shared":
+        return not bool(root.get("shared", {}).get(quest_key, {}).get("completed"))
+    return not bool(root.get("jobs", {}).get(selected_class, {}).get(quest_key, {}).get("completed"))
+
+def _load_and_set_quest(quest_path: str) -> bool:
+    """Load a quest file and set it as current. Returns True on success."""
+    global current_file, current_step, data
+    
+    try:
+        current_file = quest_path
+        data = load_json(current_file)
+        current_step = 1  # always start at 1 when auto-advancing
+        
+        _set_current_pointer_state(current_file, 1)
+        print(f"[+] Next quest: {os.path.basename(current_file)} (step 1)")
+        return True
+    except Exception as e:
+        print(f"[!] Failed to load quest {quest_path}: {e}")
+        return False
+
 def _auto_advance_to_next_incomplete() -> bool:
     """
     Scan manifest_list in order; pick the first quest not completed in progress.json.
     If found, load it and set current_step from saved progress (else 1).
     Returns True if we switched file/step; False otherwise.
     """
-    global current_file, current_step, data, progress
-
     root = _progress_load_root()
 
-    def _is_incomplete(qkey: str, source: str) -> bool:
-        s = (source or "class").lower()
-        if s == "shared":
-            return not bool(root.get("shared", {}).get(qkey, {}).get("completed"))
-        return not bool(root.get("jobs", {}).get(selected_class, {}).get(qkey, {}).get("completed"))
-
-    for ent in (manifest_list or []):
-        if not isinstance(ent, dict):
+    for entry in (manifest_list or []):
+        # Validate entry and get quest info
+        is_valid, quest_key, source = _is_valid_manifest_entry(entry)
+        if not is_valid:
             continue
-        qk = str(ent.get("quest") or "").strip().lower()
-        if not qk:
+            
+        # Skip completed quests
+        if not _check_quest_incomplete(root, quest_key, source):
             continue
-        src = str(ent.get("source") or "class").lower()
-        if not _is_incomplete(qk, src):
+            
+        # Try to resolve and load quest file
+        quest_path = resolve_file_path(f"{quest_key}.json") or resolve_file_path(quest_key)
+        if not quest_path:
             continue
-
-        qp = resolve_file_path(f"{qk}.json") or resolve_file_path(qk)
-        if not qp:
-            continue
-
-        # Switch to that quest
-        current_file = qp
-        data = load_json(current_file)
-        current_step = 1  # always start at 1 when auto-advancing after a finished quest
-
-        _set_current_pointer_state(current_file, 1)
-        print(f"[+] Next quest: {os.path.basename(current_file)} (step 1)")
-        return True
+            
+        if _load_and_set_quest(quest_path):
+            return True
 
     return False
 
