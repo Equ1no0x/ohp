@@ -1624,8 +1624,72 @@ def execute_one_step(step, keymap):
     return False
 
 # --- Combat monitoring via ACT logs ---
-def _await_combat_completion_via_act(target_name, timeout_sec=90, valid_targets=None):
-    """Wait for combat completion using ACT logs
+def _get_latest_combat_timestamp(act_log_watcher) -> str | None:
+    """Get the timestamp of the latest combat log entry."""
+    try:
+        with act_log_watcher._combat_log.open("r", encoding="utf-8") as f:
+            lines = f.readlines()[-1:]  # Just get last line
+            if lines:
+                return lines[0].split(" | ", 1)[0].strip()
+    except Exception:
+        pass
+    return None
+
+class CombatState:
+    """Track combat state and timers."""
+    def __init__(self, start_time: float):
+        self.start_time = start_time
+        self.last_combat_time = None
+        self.combat_started = False
+        self.combat_reported = False
+        self.no_combat_start = None
+        self.no_defeat_start = time.time()
+
+    def check_defeat_timeout(self, timeout: float = 60.0) -> bool:
+        """Check if we've been waiting too long for a defeat."""
+        return (time.time() - self.no_defeat_start) > timeout
+
+    def update_combat_status(self, in_combat: bool) -> tuple[bool, str | None]:
+        """Update combat state based on current combat status.
+        Returns (should_exit, error_message)"""
+        if in_combat:
+            return self._handle_in_combat()
+        return self._handle_out_of_combat()
+
+    def _handle_in_combat(self) -> tuple[bool, str | None]:
+        """Handle state updates when in combat."""
+        self.combat_started = True
+        if not self.combat_reported:
+            print("[DEBUG] In combat")
+            self.combat_reported = True
+        self.last_combat_time = time.time()
+        self.no_combat_start = None
+        return False, None
+
+    def _handle_out_of_combat(self) -> tuple[bool, str | None]:
+        """Handle state updates when out of combat."""
+        if not self.combat_started:
+            return False, None
+
+        if self.no_combat_start is None:
+            self.no_combat_start = time.time()
+            self.combat_reported = False
+        elif time.time() - self.no_combat_start > 2.0:
+            return True, "No combat activity for 2 seconds"
+        return False, None
+
+def _check_for_target_defeat(targets_map: dict, act_log_watcher, current_ts: str | None) -> tuple[bool, str | None]:
+    """Check if any target in the map was defeated."""
+    for target_lower in targets_map:
+        result, defeated_name = act_log_watcher.check_combat_completion(
+            target_lower, timeout=2.0, since_timestamp=current_ts
+        )
+        if result:
+            return True, defeated_name
+    return False, None
+
+def _await_combat_completion_via_act(target_name: str, timeout_sec: float = 90, valid_targets=None) -> tuple[bool, str | None]:
+    """Wait for combat completion using ACT logs.
     
     Args:
         target_name: Primary target we're tracking progress for
@@ -1638,61 +1702,31 @@ def _await_combat_completion_via_act(target_name, timeout_sec=90, valid_targets=
     if not act_log_watcher:
         print("[!] ACT log watcher not available")
         return False, None
-    
+
     try:
-        # Convert all targets to lowercase for comparison
+        # Setup
         valid_targets_lower = {t.lower(): t for t in (valid_targets or [target_name])}
+        current_ts = _get_latest_combat_timestamp(act_log_watcher)
+        state = CombatState(time.time())
         
-        start_time = time.time()
-        last_combat_time = None  # Will be set when we first detect combat
-        combat_started = False   # Flag to track if we've entered combat
-        combat_reported = False  # Flag to avoid duplicate combat state messages
-        
-        # Get the current timestamp from ACT logs
-        current_ts = None
-        try:
-            with act_log_watcher._combat_log.open("r", encoding="utf-8") as f:
-                lines = f.readlines()[-1:]  # Just get last line
-                if lines:
-                    current_ts = lines[0].split(" | ", 1)[0].strip()
-        except Exception:
-            pass
-            
-        no_combat_start = None  # Track when we first noticed no combat after being in combat
-        no_defeat_start = time.time()  # Track when we started waiting for defeat
-        
-        while (time.time() - start_time) < timeout_sec:
-            time_without_defeat = time.time() - no_defeat_start
-            if time_without_defeat > 60.0:  # 1 minute timeout for no defeats
+        # Monitor combat until timeout
+        while (time.time() - state.start_time) < timeout_sec:
+            # Check defeat timeout
+            if state.check_defeat_timeout():
                 return False, None
 
-            # Check combat status
-            in_combat = _is_still_in_combat(act_log_watcher)
-            if in_combat:
-                combat_started = True  # We've detected combat activity
-                if not combat_reported:
-                    print("[DEBUG] In combat")
-                    combat_reported = True
-                last_combat_time = time.time()
-                no_combat_start = None  # Reset the no-combat timer
-            elif combat_started:  # Only check for combat exit if we were in combat first
-                # Start tracking time since last combat if we haven't already
-                if no_combat_start is None:
-                    no_combat_start = time.time()
-                    combat_reported = False  # Reset so we can report next combat entry
-                elif time.time() - no_combat_start > 2.0:  # If no combat for 2 seconds
-                    return False, None
-                
-            # Check if any valid target was defeated since our timestamp
-            for target_lower in valid_targets_lower:
-                # Use a shorter timeout (2s) for each individual check since we're in a loop
-                result, defeated_name = act_log_watcher.check_combat_completion(target_lower, timeout=2.0, since_timestamp=current_ts)
-                if result:
-                    return True, defeated_name
+            # Update combat status
+            should_exit, error = state.update_combat_status(_is_still_in_combat(act_log_watcher))
+            if should_exit:
+                return False, None
 
-            # Only sleep briefly between checks
+            # Check for target defeats
+            defeat_found, defeated_name = _check_for_target_defeat(valid_targets_lower, act_log_watcher, current_ts)
+            if defeat_found:
+                return True, defeated_name
+
             time.sleep(0.1)
-            
+
         return False, None
     except Exception as e:
         print(f"[!] Error monitoring ACT logs: {e}")
