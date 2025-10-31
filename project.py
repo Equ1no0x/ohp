@@ -23,7 +23,6 @@ from modules.act_log_watcher import ACTLogWatcher
 # Default success patterns for vnav path completion
 VNAV_SUCCESS_PATTERNS = ["[INF] [vnavmesh] Pathfinding complete"]
 
-
 # === Suppress console popup for Tesseract subprocess on Windows ===
 _original_popen = subprocess.Popen
 
@@ -827,16 +826,12 @@ def _quest_source_for(qkey: str, manifest_list) -> str:
             return str(entry.get("source", "class")).lower()
     return "class"
 
+# Progress state management now handled by AssetManager
 def _progress_load_root() -> dict:
-    try:
-        return load_json(PROGRESS_STATE_FILE) or {}
-    except Exception:
-        return {}
+    return asset_manager.load_progress_root()
 
 def _progress_save_root(root: dict) -> None:
-    p = resolve_file_path(PROGRESS_STATE_FILE) or _to_abs(PROGRESS_STATE_FILE)
-    with open(p, "w", encoding="utf-8") as f:
-        json.dump(root, f, indent=2)
+    asset_manager.save_progress_root(root)
 
 def load_progress(file_path: str, skip_goto: bool = False) -> int:
     """Load saved progress for a file.

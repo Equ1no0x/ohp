@@ -1,8 +1,3 @@
-"""
-Asset Manager Module for FF14 automation system.
-Handles all asset loading, path resolution, and resource management.
-"""
-
 import os
 import json
 from typing import Dict, List, Any, Optional, Union
@@ -211,3 +206,27 @@ class AssetManager:
             except Exception:
                 pass
         return None
+        
+    def load_progress_root(self) -> Dict[str, Any]:
+        """
+        Load the progress state data from the configured progress file.
+        
+        Returns:
+            Dict containing the progress state data. Returns empty dict if file doesn't exist
+            or can't be loaded.
+        """
+        try:
+            return self.load_json(self.progress_state_file) or {}
+        except Exception:
+            return {}
+            
+    def save_progress_root(self, root: Dict[str, Any]) -> None:
+        """
+        Save progress state data to the configured progress file.
+        
+        Args:
+            root: Progress state data to save
+        """
+        p = self.resolve_file(self.progress_state_file) or self._to_abs(self.progress_state_file)
+        with open(p, "w", encoding="utf-8") as f:
+            json.dump(root, f, indent=2)
