@@ -3,48 +3,35 @@ import json
 from typing import Dict, List, Any, Optional, Union
 
 class AssetManager:
-    """
-    Handles asset loading, path resolution, and resource management.
-    All file operations should go through this class to ensure consistent handling.
-    """
-
+    """Centralized asset management for files and images.
+    Provides consistent path resolution, JSON handling, and registry-based asset lookup."""
     def __init__(self, base_dir: str):
-        """
-        Initialize the AssetManager with a base directory.
-        
-        Args:
-            base_dir (str): Base directory for all relative path resolutions
-        """
+        # Initialize manager with base directory as root for path resolution
         self.base_dir = base_dir
-        # Registries for file and image assets
-        self.file_index: Dict[str, str] = {}
-        self.image_index: Dict[str, str] = {}
-        # Default paths
+        self.file_index: Dict[str, str] = {}  # Registry for file assets
+        self.image_index: Dict[str, str] = {}  # Registry for image assets
         self.progress_state_file = "progress.json"
-        # Load asset indices on initialization
         self._load_asset_indices()
 
     @property
     def progress_file_path(self) -> str:
-        """Get the absolute path to progress.json"""
+        """Get absolute path to the progress state file."""
         return self._to_abs(self.progress_state_file)
 
     def _to_abs(self, p: str) -> str:
         """Convert a path to absolute, anchoring at base_dir if relative."""
-        return self._normalize_slashes(
-            p if os.path.isabs(p) else os.path.join(self.base_dir, p)
-        )
+        return self._normalize_slashes(p if os.path.isabs(p) else os.path.join(self.base_dir, p))
 
     def _normalize_slashes(self, path: str) -> str:
-        """Normalize path separators to system standard."""
+        """Normalize path separators to forward slashes."""
         return path.replace('\\', '/')
 
     def _exists_any(self, p: str) -> bool:
-        """Check if path exists either as-is or relative to base_dir."""
+        """Check if a path exists in either form (absolute or relative to base_dir)."""
         return os.path.exists(p) or os.path.exists(self._to_abs(p))
 
     def _assets_fullpath(self, relpath: str) -> str:
-        """Get full path to an asset, ensuring it's under the assets directory."""
+        """Ensure path is under assets directory and convert to absolute."""
         r = str(relpath).lstrip("/\\")
         low = r.lower()
         if low.startswith("assets/") or low.startswith(f"assets{os.sep}"):
@@ -52,15 +39,7 @@ class AssetManager:
         return self._normalize_slashes(self._to_abs(os.path.join("assets", r)))
 
     def _build_asset_index(self, spec: Union[Dict[str, str], List[str]]) -> Dict[str, str]:
-        """
-        Build an asset index from a specification.
-        
-        Args:
-            spec: Dictionary mapping names to paths, or list of paths
-            
-        Returns:
-            Dict mapping lowercase names to normalized paths
-        """
+        """Map filenames to normalized paths from dict/list."""
         out = {}
         try:
             if isinstance(spec, dict):
@@ -78,80 +57,52 @@ class AssetManager:
         return out
 
     def _load_asset_indices(self):
-        """Load asset registry files (files.json and images.json) directly."""
-        files_json = None
-        images_json = None
+        def try_load_json(candidates: tuple[str, ...]) -> Optional[Any]:
+            """Try to load JSON from first existing candidate path."""
+            for cand in candidates:
+                p = self._to_abs(cand)
+                if os.path.exists(p):
+                    with open(p, "r", encoding="utf-8") as f:
+                        return json.load(f)
+            return None
 
-        # Try to load files.json
-        for cand in ("assets/files.json", "assets/FILES.json"):
-            p = self._to_abs(cand)
-            if os.path.exists(p):
-                with open(p, "r", encoding="utf-8") as f:
-                    files_json = json.load(f)
-                break
-
-        # Try to load images.json
-        for cand in ("assets/images.json", "assets/IMAGES.json"):
-            p = self._to_abs(cand)
-            if os.path.exists(p):
-                with open(p, "r", encoding="utf-8") as f:
-                    images_json = json.load(f)
-                break
-
+        files_json = try_load_json(("assets/files.json", "assets/FILES.json"))
+        images_json = try_load_json(("assets/images.json", "assets/IMAGES.json"))
+        
         self.file_index = self._build_asset_index(files_json) if files_json else {}
         self.image_index = self._build_asset_index(images_json) if images_json else {}
 
     def load_json(self, filename: str) -> Any:
-        """
-        Load a JSON file, using the registry to resolve paths.
-        
-        Args:
-            filename: Name or path of the JSON file
-            
-        Returns:
-            Parsed JSON content
-        
-        Raises:
-            FileNotFoundError: If file cannot be found via registry
-        """
+        """Load and parse JSON file from registry or direct path, raises FileNotFoundError if not found."""
         tried = []
-
-        # Allow direct read ONLY for registry files themselves
         low = str(filename).lower().replace("\\", "/")
-        if low.endswith("assets/files.json") or low.endswith("/files.json"):
-            p = self._to_abs(filename)
-            tried.append(p)
-            with open(p, "r", encoding="utf-8") as f:
-                return json.load(f)
 
-        if low.endswith("assets/images.json") or low.endswith("/images.json"):
-            p = self._to_abs(filename)
-            tried.append(p)
-            with open(p, "r", encoding="utf-8") as f:
-                return json.load(f)
+        def try_load(filepath: str) -> Optional[Any]:
+            """Helper to attempt JSON load from a path."""
+            tried.append(filepath)
+            if os.path.exists(filepath):
+                with open(filepath, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            return None
 
-        # Resolve via registry
+        # Check direct registry files first
+        if low.endswith(("assets/files.json", "/files.json", "assets/images.json", "/images.json")):
+            result = try_load(self._to_abs(filename))
+            if result is not None:
+                return result
+
+        # Try registry lookup
         key = os.path.basename(str(filename)).lower()
         rel = self.file_index.get(key) or self.file_index.get(f"{key}.json")
-
         if rel:
-            rp = self._assets_fullpath(rel)
-            tried.append(rp)
-            with open(rp, "r", encoding="utf-8") as f:
-                return json.load(f)
+            result = try_load(self._assets_fullpath(rel))
+            if result is not None:
+                return result
 
         raise FileNotFoundError(f"No such JSON via registry: {filename} (tried: {tried})")
 
     def resolve_file(self, name_or_path: str) -> Optional[str]:
-        """
-        Resolve a file path using the registry.
-        
-        Args:
-            name_or_path: File name or path to resolve
-            
-        Returns:
-            Absolute path if found, None otherwise
-        """
+        """Find absolute path for a file using registry lookup or None if not found."""
         p = str(name_or_path)
         key = os.path.basename(p).lower()
         rel = self.file_index.get(key) or self.file_index.get(f"{key}.json")
@@ -160,15 +111,7 @@ class AssetManager:
         return None
 
     def resolve_image(self, name_or_path: str) -> Optional[str]:
-        """
-        Resolve an image path using the registry.
-        
-        Args:
-            name_or_path: Image name or path to resolve
-            
-        Returns:
-            Absolute path if found, None otherwise
-        """
+        """Find absolute path for an image using direct path, assets path, or registry lookup."""
         p = str(name_or_path)
         if self._exists_any(p):
             return self._to_abs(p)
@@ -181,22 +124,12 @@ class AssetManager:
         return None
 
     def resolve_quest_by_id(self, quest_id: str) -> Optional[str]:
-        """
-        Try to resolve a quest file by its ID.
-        
-        Args:
-            quest_id: The ID of the quest to find
-            
-        Returns:
-            Absolute path to quest file if found, None otherwise
-        """
-        # First try the ID directly (with and without .json)
-        path = self.resolve_file(quest_id) or self.resolve_file(f"{quest_id}.json")
+        """Find quest file path by ID using direct lookup or quests.json registry."""
+        path = self.resolve_file(quest_id) or self.resolve_file(f"{quest_id}.json")  # Try ID directly
         if path:
             return path
 
-        # Then try looking up the quest ID in the quest index if it exists
-        quest_index = self.resolve_file("quests.json")
+        quest_index = self.resolve_file("quests.json")  # Try quest index lookup
         if quest_index and os.path.exists(quest_index):
             try:
                 with open(quest_index, "r", encoding="utf-8") as f:
@@ -208,25 +141,14 @@ class AssetManager:
         return None
         
     def load_progress_root(self) -> Dict[str, Any]:
-        """
-        Load the progress state data from the configured progress file.
-        
-        Returns:
-            Dict containing the progress state data. Returns empty dict if file doesn't exist
-            or can't be loaded.
-        """
+        """Load progress state from file or return empty dict if file doesn't exist."""
         try:
             return self.load_json(self.progress_state_file) or {}
         except Exception:
             return {}
             
     def save_progress_root(self, root: Dict[str, Any]) -> None:
-        """
-        Save progress state data to the configured progress file.
-        
-        Args:
-            root: Progress state data to save
-        """
+        """Write progress state to configured JSON file."""
         p = self.resolve_file(self.progress_state_file) or self._to_abs(self.progress_state_file)
         with open(p, "w", encoding="utf-8") as f:
             json.dump(root, f, indent=2)
