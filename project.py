@@ -4,21 +4,25 @@ import time
 import json
 import os
 from datetime import datetime, timezone, timedelta
-import pyperclip 
-import psutil
-import win32gui
-import win32con
-import win32process
-import win32api
+# System-related imports now in system_actions.py
 import configparser
 import subprocess
 import pytesseract
+import pyperclip
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 import sys
 
 # Import core modules
 from modules.core import AssetManager
 from modules.act_log_watcher import ACTLogWatcher
+from modules.core.system_actions import SystemActions
+
+# Initialize system actions
+system_actions = SystemActions()
+
+# Initialize AssetManager with base directory
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+asset_manager = AssetManager(BASE_DIR)
 
 # Default success patterns for vnav path completion
 VNAV_SUCCESS_PATTERNS = ["[INF] [vnavmesh] Pathfinding complete"]
@@ -40,10 +44,6 @@ import cv2
 import numpy as np
 import re
 import difflib
-
-# Initialize AssetManager with base directory
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-asset_manager = AssetManager(BASE_DIR)
 
 PROGRESS_STATE_FILE = "progress.json"
 
@@ -477,56 +477,6 @@ def _substitute_params(obj, params):
         return {k: _substitute_params(v, params) for k, v in obj.items()}
     return obj
 
-def find_process_window(process_name):
-    for proc in psutil.process_iter(['pid', 'name']):
-        if proc.info['name'] == process_name:
-            print(f"[+] Found process {process_name} (PID: {proc.pid})")
-            return get_window_by_pid(proc.info['pid'])
-    return None
-
-def get_window_by_pid(pid):
-    def callback(hwnd, windows):
-        _, found_pid = win32process.GetWindowThreadProcessId(hwnd)
-        if found_pid == pid and win32gui.IsWindowVisible(hwnd):
-            windows.append(hwnd)
-        return True
-    windows = []
-    win32gui.EnumWindows(callback, windows)
-    for hwnd in windows:
-        title = win32gui.GetWindowText(hwnd)
-        if title:
-            print(f"[+] Window Handle: {hwnd}, Title: {title}")
-            return hwnd
-    return None
-
-def focus_game_window(hwnd):
-    try:
-        current_foreground = win32gui.GetForegroundWindow()
-        if current_foreground == hwnd:
-            return
-
-        print("[*] Bringing game window to front...")
-
-        foreground_thread_id = win32process.GetWindowThreadProcessId(current_foreground)[0]
-        target_thread_id = win32process.GetWindowThreadProcessId(hwnd)[0]
-        current_thread_id = win32api.GetCurrentThreadId()
-
-        if foreground_thread_id != target_thread_id:
-            win32process.AttachThreadInput(current_thread_id, foreground_thread_id, True)
-            win32process.AttachThreadInput(current_thread_id, target_thread_id, True)
-
-        win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
-        win32gui.SetForegroundWindow(hwnd)
-        time.sleep(0.25)
-
-        win32process.AttachThreadInput(current_thread_id, foreground_thread_id, False)
-        win32process.AttachThreadInput(current_thread_id, target_thread_id, False)
-
-        print("[*] Game window is now in focus.")
-
-    except Exception as e:
-        print(f"[!] Failed to bring window to front: {e}")
-
 def send_chat_command(command, keymap):
     # Copy text
     pyperclip.copy("")
@@ -583,34 +533,38 @@ def _handle_virtual_key(action, key_name, keymap):
     else:
         release_key(key_code)
 
-def _sleep_ms(duration_ms):
-    try:
-        time.sleep(float(duration_ms) / 1000.0)
-    except (TypeError, ValueError):
-        print(f"[!] Invalid wait value: {duration_ms}")
-
-def _handle_press_release(action, macro_array, index, keymap):
-    target = _macro_arg(macro_array, index, 1, action)
-    if target is None:
-        return len(macro_array)
-    if target in mouse_buttons:
-        _handle_mouse_button(action, target)
-    else:
-        _handle_virtual_key(action, target, keymap)
-    return index + 2
+# System-related functions have been moved to SystemActions
 
 def _handle_press(macro_array, index, keymap):
-    return _handle_press_release('press', macro_array, index, keymap)
+    key_name = _macro_arg(macro_array, index, 1, 'press')
+    if key_name is None:
+        return index + 1
+    if key_name in mouse_buttons:
+        _handle_mouse_button('press', key_name)
+    else:
+        _handle_virtual_key('press', key_name, keymap)
+    return index + 2
 
 def _handle_release(macro_array, index, keymap):
-    return _handle_press_release('release', macro_array, index, keymap)
+    key_name = _macro_arg(macro_array, index, 1, 'release')
+    if key_name is None:
+        return index + 1
+    if key_name in mouse_buttons:
+        _handle_mouse_button('release', key_name)
+    else:
+        _handle_virtual_key('release', key_name, keymap)
+    return index + 2
 
 def _handle_wait(macro_array, index, keymap):
-    duration = _macro_arg(macro_array, index, 1, 'wait')
-    if duration is None:
-        return len(macro_array)
-    print(f"[*] Wait: {duration}ms")
-    _sleep_ms(duration)
+    delay = _macro_arg(macro_array, index, 1, 'wait')
+    if delay is None:
+        return index + 1
+    try:
+        delay_i = int(delay)
+        print(f"[*] Wait: {delay_i}ms")
+        system_actions.sleep_ms(delay_i)
+    except (TypeError, ValueError):
+        print(f"[!] Invalid wait value: {delay}")
     return index + 2
 
 def _handle_rand(macro_array, index, keymap):
@@ -628,7 +582,7 @@ def _handle_rand(macro_array, index, keymap):
         low_i, high_i = high_i, low_i
     delay = random.randint(low_i, high_i)
     print(f"[*] Random wait: {delay}ms")
-    _sleep_ms(delay)
+    system_actions.sleep_ms(delay)
     return index + 3
 
 _MACRO_HANDLERS = {
@@ -901,7 +855,7 @@ def resolve_goto_chain(file, step):
 
 def _cycle_target_selection(keymap):
     execute_command_sequence(["press", "VK_TAB", "rand", 56, 126, "release", "VK_TAB"], keymap)
-    time.sleep(1.5)
+    system_actions.wait_sec(1.5)
 
 def _pick_target_via_ocr(candidates, limits, kills, region, combat_type=None):
     for name in candidates:
@@ -1729,7 +1683,7 @@ def _load_classes_index():
 
 # Game window
 TARGET_PROCESS = "ffxiv_dx11.exe"
-hwnd = find_process_window(TARGET_PROCESS)
+hwnd = system_actions.find_process_window(TARGET_PROCESS)
 
 # Initialize ACT log watcher
 try:
@@ -2051,8 +2005,8 @@ while True:
             continue
 
         # keep game focused before actions
-        focus_game_window(hwnd)
-        time.sleep(0.1)
+        system_actions.focus_window(hwnd)
+        system_actions.wait_sec(0.1)
 
         # Primitive step handler (keeps runner lean and consistent everywhere)
         if any(k in step for k in ("command","macro","region","ocr","img_search","mouse_move","wait","rand","await","destination")):
@@ -2081,11 +2035,11 @@ while True:
             expanded_steps = _substitute_params(raw_steps, argmap)
 
             print(f"  [*] interaction {name}: {len(expanded_steps)} steps")
-            focus_game_window(hwnd); time.sleep(0.05)
+            system_actions.focus_window(hwnd); time.sleep(0.05)
 
             for i_idx, i_step in enumerate(expanded_steps, start=1):
                 print(f"    [*] interaction {name} step {i_idx}/{len(expanded_steps)}")
-                focus_game_window(hwnd); time.sleep(0.05)
+                system_actions.focus_window(hwnd); time.sleep(0.05)
                 if not execute_one_step(i_step, keymap):
                     print(f"    [!] Unknown interaction step: {i_step}")
             continue

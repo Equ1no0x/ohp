@@ -17,17 +17,19 @@
 			"combat": {
 				"region": "750, 31, 1190, 52",
 				"names": ["Silver Coblyn"],
-				"counts": [1]
+				"counts": [3]
 			}
-		},
-		{ "interaction_type": ["end_combat"] },
-		{ "command": "change_stance" }
+		}
 	],
 	"5": [
+		{ "command": "change_stance" },
+		{ "rand": [5000, 6000]}
+	],
+	"6": [
 		{ "map": "central_thanalan", "npc": "warin" },
 		{ "interaction_type": ["npc_interact", {"name": "warin"}] }
 	],
-	"6": [
+	"7": [
 		{ "comment": "End of quest file" }
 	]
 }
