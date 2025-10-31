@@ -10,7 +10,7 @@
 	],
 	"3": [
 		{ "comment": "WalkTo Drunken Stag" },
-		{ "vnav": ["239.527 58.357 -161.353", 30000, 2.2] },
+		{ "vnav": ["240.767 58.311 -160.965", 30000, 2.2] },
 		{ "interaction_type": ["npc_interact", {"name": "Drunken Stag"}] }
 	],
 	"4": [

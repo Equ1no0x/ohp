@@ -13,7 +13,7 @@ pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tessera
 import sys
 
 # Import core modules
-from modules.core import AssetManager, InputManager, GameActions, MacroManager
+from modules.core import AssetManager, InputManager, GameActions, MacroManager, ProgressManager
 from modules.core.system_actions import SystemActions
 from modules.act_log_watcher import ACTLogWatcher
 
@@ -24,6 +24,9 @@ game_actions = GameActions()
 # Initialize AssetManager with base directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 asset_manager = AssetManager(BASE_DIR)
+
+# Initialize ProgressManager
+progress_manager = ProgressManager(asset_manager)
 
 # Default success patterns for vnav path completion
 VNAV_SUCCESS_PATTERNS = ["[INF] [vnavmesh] Pathfinding complete"]
@@ -45,9 +48,6 @@ import cv2
 import numpy as np
 import re
 import difflib
-
-PROGRESS_STATE_FILE = "progress.json"
-
 from PIL import ImageGrab
 from ctypes import wintypes
 
@@ -62,9 +62,6 @@ last_ocr_match_center = None
 last_img_match_center = None
 last_detection_type = None
 current_step = None
-
-# --- GOTO call stack for nested quest jumps ---
-GOTO_STACK = []  # each frame: (return_file_fullpath, return_step_int)
 
 # OCR: default ceiling for general OCR calls
 TESSERACT_TIMEOUT_SEC = 5
@@ -523,27 +520,18 @@ def _write_progress_entry(file_path: str, step: int, *, completed: bool, update_
     progress = root
 
 def _mark_quest_completed(file_path: str, last_step: int | None) -> None:
-    step_value = last_step
-    try:
-        if step_value is None:
-            step_value = load_progress(file_path)
-        step_value = int(step_value)
-    except Exception:
-        step_value = 1
-    if step_value <= 0:
-        step_value = 1
-    _write_progress_entry(file_path, step_value, completed=True, update_current=False)
+    progress_manager.mark_quest_completed(file_path, last_step)
 
 def _return_to_goto_caller() -> bool:
     global current_file, current_step, data
-    if not GOTO_STACK:
+    success, ret_file, ret_step = progress_manager.return_to_goto_caller()
+    if not success:
         return False
-    ret_file, ret_step = GOTO_STACK.pop()
     try:
         data = load_json(ret_file)
         current_file = ret_file
         current_step = int(ret_step)
-        _set_current_pointer_state(current_file, current_step)
+        progress_manager.set_current_quest(current_file, current_step)
         print(f'[*] Returning to {os.path.basename(current_file)} at step {current_step} (via goto stack).')
         return True
     except Exception as exc:
@@ -659,39 +647,12 @@ def load_progress(file_path: str, skip_goto: bool = False) -> int:
     """Load saved progress for a file.
     If skip_goto=False (default), consider steps reached via goto when checking progress.
     If skip_goto=True, only look at natural progression through the file."""
-    qkey = _quest_key_for_path(file_path)
-    source = _quest_source_for(qkey, globals().get("manifest_list"))
-    root = _progress_load_root()
-    
-    # Get the quest entry
-    if source == "shared":
-        entry = root.get("shared", {}).get(qkey, {})
-    else:
-        entry = root.get("jobs", {}).get(globals().get("selected_class", ""), {}).get(qkey, {})
-    entry = entry or {}
-    
-    # Get the main progression step
-    val = entry.get("step")
-    try:
-        base_step = int(val) if val is not None else 1
-        if base_step <= 0:
-            base_step = 1
-        
-        # Unless explicitly asked to skip, consider any steps reached via goto
-        if not skip_goto and "goto_steps" in entry:
-            goto_steps = entry["goto_steps"]
-            if goto_steps and any(s > base_step for s in goto_steps):
-                # Only use goto steps if they're beyond our natural progression
-                return max(s for s in goto_steps if s > base_step)
-        
-        return base_step
-    except Exception:
-        return 1
+    return progress_manager.load_quest_progress(file_path, skip_goto)
 
 def save_progress(file_path: str, step: int, via_goto: bool = False) -> None:
     """Save progress for a file.
     If via_goto=True, record this as a step reached through a goto rather than natural progression."""
-    _write_progress_entry(file_path, step, completed=False, update_current=True, via_goto=via_goto)
+    progress_manager.save_quest_progress(file_path, step, update_current=True, via_goto=via_goto)
 
 def resolve_goto_chain(file, step):
     visited = set()
@@ -1207,15 +1168,11 @@ def execute_one_step(step, keymap):
         if isinstance(mv, list) and len(mv) == 2:
             x, y = int(mv[0]), int(mv[1])
             move_mouse_hardware(x, y)
-            # Wait for cursor movement to complete
-            time.sleep(0.2)
         elif mv == "move_to":
             if last_detection_type == "ocr" and last_ocr_match_center:
                 move_mouse_hardware(*last_ocr_match_center)
-                time.sleep(0.2)  # Wait for cursor movement to complete
             elif last_detection_type == "img" and last_img_match_center:
                 move_mouse_hardware(*last_img_match_center)
-                time.sleep(0.2)  # Wait for cursor movement to complete
             else:
                 print("[!] mouse_move(move_to): no detection center available.")
         else:
@@ -1607,82 +1564,34 @@ manifest_list = manifest_raw["quests"] if isinstance(manifest_raw, dict) and "qu
     manifest_raw if isinstance(manifest_raw, list) else []
 )
 
-# --- Initialize progress tracking ---
-progress_path = resolve_file_path(PROGRESS_STATE_FILE) or asset_manager._to_abs(PROGRESS_STATE_FILE)
-try:
-    progress = load_json(PROGRESS_STATE_FILE)
-except Exception:
-    progress = {}
+# Initialize progress tracking
+progress_manager.initialize(selected_class, manifest_list)
 
-def _is_completed(qkey: str, source: str) -> bool:
-    s = (source or "class").lower()
-    if s == "shared":
-        return bool(progress.get("shared", {}).get(qkey, {}).get("completed"))
-    return bool(progress.get("jobs", {}).get(selected_class, {}).get(qkey, {}).get("completed"))
-
-def _saved_step(qkey: str, source: str) -> int:
-    s = (source or "class").lower()
-    if s == "shared":
-        v = progress.get("shared", {}).get(qkey, {}).get("step")
-    else:
-        v = progress.get("jobs", {}).get(selected_class, {}).get(qkey, {}).get("step")
-    try:
-        return int(v) if v is not None else 1
-    except Exception:
-        return 1
-
-def _set_current(qkey: str, step: int):
-    progress.setdefault("current", {})
-    progress["current"].update({"job": selected_class, "quest": qkey, "step": int(step or 1)})
-    # write to resolved file path so it actually persists
-    with open(progress_path, "w", encoding="utf-8") as f:
-        json.dump(progress, f, indent=2)
-
-# --- Choose the active quest/step ---
+# Choose the active quest/step
 current_file = None
 current_step = 1
 current_quest_key = None
 
 # 1) Resume progress.current if it matches this job and is not completed
-cur = progress.get("current") or {}
-if cur.get("job") == selected_class and cur.get("quest"):
-    qkey = str(cur["quest"]).strip().lower()
-    # resolve "<qkey>.json" first, then bare qkey (both via files.json)
-    qpath = resolve_file_path(f"{qkey}.json") or resolve_file_path(qkey)
-    if qpath:
-        # if it's not completed in either shared or class space, resume it
-        if not _is_completed(qkey, "shared") and not _is_completed(qkey, "class"):
-            current_file = qpath
-            current_step = int(cur.get("step") or _saved_step(qkey, "shared") or _saved_step(qkey, "class") or 1)
-            current_quest_key = qkey
+result = progress_manager.resume_from_current()
+if result:
+    current_file, current_step = result
+    current_quest_key = progress_manager._quest_key_for_path(current_file)
 
-# 2) Otherwise, scan the class manifest (in order) and pick the first incomplete quest
+# 2) Otherwise, scan for first incomplete quest
 if not current_file:
-    for entry in manifest_list:
-        if not isinstance(entry, dict):
-            continue
-        qkey = str(entry.get("quest") or "").strip().lower()
-        if not qkey:
-            continue
-        source = str(entry.get("source") or "class").lower()
-        if _is_completed(qkey, source):
-            continue
-        qpath = resolve_file_path(f"{qkey}.json") or resolve_file_path(qkey)
-        if not qpath:
-            print(f"[!] Could not resolve quest file for {qkey!r} via assets/files.json; skipping.")
-            continue
-        current_file = qpath
-        current_step = _saved_step(qkey, source)
-        current_quest_key = qkey
-        break
+    result = progress_manager.find_next_incomplete_quest()
+    if result:
+        current_file, current_step = result
+        current_quest_key = progress_manager._quest_key_for_path(current_file)
 
 # 3) Nothing to do if all quests are completed
 if not current_file:
     print("[+] All quests in manifest appear completed for this job.")
     raise SystemExit(0)
 
-# Persist the 'current' pointer now that we know what to run
-_set_current(current_quest_key, current_step)
+# Set current quest in progress manager
+progress_manager.set_current_quest(current_file, current_step)
 
 def _resume_from_saved_step() -> bool:
     """
@@ -1690,7 +1599,7 @@ def _resume_from_saved_step() -> bool:
     If the quest had been marked completed but a new step now exists, set completed=False.
     If no next step exists, auto-advance to the next incomplete quest from the manifest.
     """
-    global current_file, current_step, data, progress
+    global current_file, current_step, data
     print("[*] RESUME requested.")
 
     # Reload registries & current quest file to see newly-added steps
@@ -1801,7 +1710,7 @@ def _auto_advance_to_next_incomplete() -> bool:
     return False
 
 def save_progress_quiet(file_path: str, step: int) -> None:
-    _write_progress_entry(file_path, step, completed=False, update_current=False)
+    progress_manager.save_quest_progress(file_path, step, update_current=False)
 
 print(f"[+] Job file: {current_file}")
 
@@ -2083,7 +1992,7 @@ while True:
 
             # Push return frame so finishing the target can come back here at the next step
             next_step = int(current_step) + 1
-            GOTO_STACK.append((current_file, next_step))
+            progress_manager.push_goto_stack(current_file, next_step)
 
             print(f"[*] GOTO -> {target_file}, step {target_step}")
 
@@ -2091,7 +2000,7 @@ while True:
             current_file = target_file
             data = load_json(current_file)
             current_step = target_step_num
-            _write_progress_entry(current_file, target_step_num - 1, completed=False, update_current=True)
+            progress_manager.save_quest_progress(current_file, target_step_num - 1, update_current=True)
             current_step = target_step_num
 
             # Reset any transient detection state if you keep it
