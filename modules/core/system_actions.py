@@ -91,7 +91,15 @@ class SystemActions:
             high_i = int(high_ms)
             if low_i > high_i:
                 low_i, high_i = high_i, low_i
-            delay = random.randint(low_i, high_i)
+                
+            try:
+                # Use secrets for better randomness
+                import secrets
+                delay = low_i + secrets.randbelow(high_i - low_i + 1)
+            except (ImportError, AttributeError):
+                # Fallback to random if secrets is unavailable
+                delay = random.randint(low_i, high_i)
+                
             print(f"[*] Random wait: {delay}ms")
             self.sleep_ms(delay)
         except (TypeError, ValueError) as e:

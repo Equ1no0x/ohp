@@ -1369,7 +1369,12 @@ def execute_one_step(step, keymap):
 
     if "rand" in step:
         low, high = step["rand"]
-        delay = random.randint(int(low), int(high))
+        low_i, high_i = int(low), int(high)
+        try:
+            import secrets
+            delay = low_i + secrets.randbelow(high_i - low_i + 1)
+        except (ImportError, AttributeError):
+            delay = random.randint(low_i, high_i)
         print(f"[*] Random wait: {delay}ms")
         time.sleep(delay / 1000.0)
         return True
@@ -2059,7 +2064,11 @@ while True:
                     print(f"[!] vnav leg {i}/{total} failed; aborting remaining legs.")
                     break
                 if i < total:
-                    dwell = random.randint(250, 350)
+                    try:
+                        import secrets
+                        dwell = 250 + secrets.randbelow(101)  # 250 to 350
+                    except (ImportError, AttributeError):
+                        dwell = random.randint(250, 350)
                     print(f"  [*] vnav dwell between legs: {dwell}ms")
                     time.sleep(dwell / 1000.0)
             continue
@@ -2107,7 +2116,11 @@ while True:
                         print(f"[!] vnav leg {i}/{total} failed; aborting remaining legs for {poi_key}.")
                         break
                     if i < total:
-                        dwell = random.randint(250, 350)
+                        try:
+                            import secrets
+                            dwell = 250 + secrets.randbelow(101)  # 250 to 350
+                        except (ImportError, AttributeError):
+                            dwell = random.randint(250, 350)
                         print(f"  [*] vnav dwell between legs: {dwell}ms")
                         time.sleep(dwell / 1000.0)
                 continue
