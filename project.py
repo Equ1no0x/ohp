@@ -580,7 +580,11 @@ def _handle_rand(macro_array, index, keymap):
         return index + 3
     if low_i > high_i:
         low_i, high_i = high_i, low_i
-    delay = random.randint(low_i, high_i)
+    try:
+        import secrets
+        delay = low_i + secrets.randbelow(high_i - low_i + 1)
+    except (ImportError, AttributeError):
+        delay = random.randint(low_i, high_i)
     print(f"[*] Random wait: {delay}ms")
     system_actions.sleep_ms(delay)
     return index + 3
