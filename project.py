@@ -13,7 +13,7 @@ pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tessera
 import sys
 
 # Import core modules
-from modules.core import AssetManager, InputManager, GameActions
+from modules.core import AssetManager, InputManager, GameActions, MacroManager
 from modules.core.system_actions import SystemActions
 from modules.act_log_watcher import ACTLogWatcher
 
@@ -474,87 +474,6 @@ def send_chat_command(command, keymap):
     """Send a chat command to the game."""
     game_actions.send_chat_command(command, keymap)
 
-def _macro_arg(macro_array, index, offset, cmd):
-    try:
-        return macro_array[index + offset]
-    except IndexError:
-        print(f"[!] Macro '{cmd}' expects more arguments (index {index})")
-        return None
-
-def _handle_mouse_button(action, button_id):
-    print(f"[*] {'Pressing' if action == 'press' else 'Releasing'} mouse button {button_id}")
-    if action == 'press':
-        InputManager.press_mouse_button(button_id)
-    else:
-        InputManager.release_mouse_button(button_id)
-
-def _handle_virtual_key(action, key_name, keymap):
-    print(f"[*] {'Pressing' if action == 'press' else 'Releasing'} {key_name}")
-    try:
-        if action == 'press':
-            InputManager.press_virtual_key(key_name, keymap)
-        else:
-            InputManager.release_virtual_key(key_name, keymap)
-    except ValueError as e:
-        print(f"[!] {e}")
-
-def _handle_press(macro_array, index, keymap):
-    key_name = _macro_arg(macro_array, index, 1, 'press')
-    if key_name is None:
-        return index + 1
-    if key_name in mouse_buttons:
-        _handle_mouse_button('press', key_name)
-    else:
-        _handle_virtual_key('press', key_name, keymap)
-    return index + 2
-
-def _handle_release(macro_array, index, keymap):
-    key_name = _macro_arg(macro_array, index, 1, 'release')
-    if key_name is None:
-        return index + 1
-    if key_name in mouse_buttons:
-        _handle_mouse_button('release', key_name)
-    else:
-        _handle_virtual_key('release', key_name, keymap)
-    return index + 2
-
-def _handle_wait(macro_array, index, keymap):
-    delay = _macro_arg(macro_array, index, 1, 'wait')
-    if delay is None:
-        return index + 1
-    try:
-        delay_i = int(delay)
-        print(f"[*] Wait: {delay_i}ms")
-        system_actions.sleep_ms(delay_i)
-    except (TypeError, ValueError):
-        print(f"[!] Invalid wait value: {delay}")
-    return index + 2
-
-def _handle_rand(macro_array, index, keymap):
-    low = _macro_arg(macro_array, index, 1, 'rand')
-    high = _macro_arg(macro_array, index, 2, 'rand')
-    if low is None or high is None:
-        return len(macro_array)
-    try:
-        low_i = int(low)
-        high_i = int(high)
-    except (TypeError, ValueError):
-        print(f"[!] Invalid rand bounds: {low}, {high}")
-        return index + 3
-    if low_i > high_i:
-        low_i, high_i = high_i, low_i
-    delay = random.randint(low_i, high_i)
-    print(f"[*] Random wait: {delay}ms")
-    time.sleep(delay / 1000.0)
-    return index + 3
-
-_MACRO_HANDLERS = {
-    'press': _handle_press,
-    'release': _handle_release,
-    'wait': _handle_wait,
-    'rand': _handle_rand,
-}
-
 def _set_current_pointer_state(file_path: str, step: int) -> None:
     global progress
     try:
@@ -713,25 +632,12 @@ def _finalize_and_prompt(last_step: int) -> bool:
     return True
 
 def execute_command_sequence(macro_array, keymap, command_text=None):
-    _ = command_text  # preserved for compatibility
-    index = 0
-    length = len(macro_array)
-    while index < length:
-        cmd = macro_array[index]
-        handler = _MACRO_HANDLERS.get(cmd)
-        if handler is None:
-            print(f"[!] Unknown macro command: {cmd}")
-            index += 1
-            continue
-        next_index = handler(macro_array, index, keymap)
-        if next_index <= index:
-            index += 1
-        else:
-            index = next_index
-    return
+    """Execute a macro command sequence using MacroManager."""
+    MacroManager.execute_sequence(macro_array, keymap, command_text)
 
 def is_macro_step(step):
-    return isinstance(step, dict) and any(k in step for k in ("press", "release", "wait", "rand", "paste"))
+    """Check if a step is a macro step."""
+    return MacroManager.is_macro_step(step)
 
 def _quest_key_for_path(file_path: str) -> str:
     return os.path.splitext(os.path.basename(file_path))[0].lower()
@@ -1301,11 +1207,15 @@ def execute_one_step(step, keymap):
         if isinstance(mv, list) and len(mv) == 2:
             x, y = int(mv[0]), int(mv[1])
             move_mouse_hardware(x, y)
+            # Wait for cursor movement to complete
+            time.sleep(0.2)
         elif mv == "move_to":
             if last_detection_type == "ocr" and last_ocr_match_center:
                 move_mouse_hardware(*last_ocr_match_center)
+                time.sleep(0.2)  # Wait for cursor movement to complete
             elif last_detection_type == "img" and last_img_match_center:
                 move_mouse_hardware(*last_img_match_center)
+                time.sleep(0.2)  # Wait for cursor movement to complete
             else:
                 print("[!] mouse_move(move_to): no detection center available.")
         else:

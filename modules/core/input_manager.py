@@ -101,7 +101,14 @@ class InputManager:
         extra = 0
         if 'XBUTTON' in button_id:
             extra = 1 if btn == 'x1' else 2
-        user32.mouse_event(flag, 0, 0, extra, 0)
+        # VOID WINAPI mouse_event(
+        #   DWORD     dwFlags,      // flags for movement and button state
+        #   DWORD     dx,           // change in x coordinate
+        #   DWORD     dy,           // change in y coordinate 
+        #   DWORD     dwData,       // wheel movement for X buttons
+        #   ULONG_PTR dwExtraInfo   // extra info, usually 0
+        # );
+        user32.mouse_event(flag, 0, 0, 0, extra)
 
     @staticmethod
     def _handle_virtual_key(action: str, key_name: str, keymap: dict) -> None:

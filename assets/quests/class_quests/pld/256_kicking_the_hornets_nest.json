@@ -12,7 +12,7 @@
 	"3": [
 		{ "map": "uldah", "location": "gladiators_guild_as" },
 		{ "interaction_type": ["use_aethernet_shard", {"name": "Adventurers' Guild"}] },
-		{ "map": "uldah", "location": "adventurers_guild_tp" }
+		{ "destination": ["63.248 4.1 -117.200", -1, 10.5] }
 	],
 	"4": [
 		{ "vnav": ["76.118 4.099 -136.998", 10000, 2.50] },
@@ -41,7 +41,7 @@
 	"10": [
 		{ "map": "uldah", "location": "adventurers_guild_as" },
 		{ "interaction_type": ["use_aethernet_shard", {"name": "Gladiators' Guild"}] },
-		{ "map": "uldah", "location": "gladiators_guild_tp" }
+		{ "destination": ["-50.289 9.999 10.797", -1, 10.5] }
 	],
 	"11": [
 		{ "map": "uldah", "npc": "mylla" },
