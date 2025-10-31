@@ -4,7 +4,7 @@
 		{ "interaction_type": ["npc_interact", {"name": "Drunken Stag"}] }
 	],
 	"2": [
-		{ "vnav": ["296.734 62.355 -192.856", -1, 2.2] },
+		{ "vnav": ["297.566 62.546 -194.049", -1, 2.2] },
 		{ "interaction_type": ["npc_interact", {"name": "Ore Mound"}] },
 		{
 			"combat": {
@@ -16,7 +16,7 @@
 		}
 	],
 	"3": [
-		{ "vnav": ["317.070 63.019 -200.371", -1, 2.2] },
+		{ "vnav": ["318.318 63.523 -200.946", -1, 2.2] },
 		{ "interaction_type": ["npc_interact", {"name": "Ore Mound"}] },
 		{
 			"combat": {
@@ -28,7 +28,7 @@
 		}
 	],
 	"4": [
-		{ "vnav": ["293.853 63.462 -234.917", -1, 2.2] },
+		{ "vnav": ["293.018 63.462 -236.163", -1, 2.2] },
 		{ "interaction_type": ["npc_interact", {"name": "Ore Mound"}] },
 		{
 			"combat": {

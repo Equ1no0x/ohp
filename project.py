@@ -686,7 +686,7 @@ def _cycle_target_selection(keymap):
     execute_command_sequence(["press", "VK_TAB", "rand", 56, 126, "release", "VK_TAB"], keymap)
     system_actions.wait_sec(1.5)
 
-def _pick_target_via_ocr(candidates, limits, kills, region, combat_type=None):
+def _pick_target_via_ocr(candidates, limits, kills, region):
     for name in candidates:
         found = perform_ocr_and_find_text(name, region)
         
@@ -708,7 +708,7 @@ def _move_mouse_to_last_detection():
     InputManager.last_img_match_center = last_img_match_center
     return InputManager.move_to_last_detection()
 
-def _open_with_mouse(keymap):
+def _open_with_mouse():
     InputManager.open_with_mouse()
 
 def _is_still_in_combat(act_log_watcher, timeout=5.0):
@@ -845,7 +845,7 @@ def _monitor_combat_cycle(act_log_watcher, target, valid_targets, kills, limits,
         
     return False, last_combat_time, False
 
-def _await_defeat_line(target, keymap, kills, limits, valid_targets=None):
+def _await_defeat_line(target, kills, limits, valid_targets=None):
     """Wait for target defeat using ACT log monitoring"""
     global act_log_watcher
     
@@ -893,11 +893,11 @@ def _finalize_combat(end_command, keymap):
 def _engage_target(name, keymap, kills, limits, style='full', valid_targets=None):
     print(f"[*] Engaging {name}...")
     _move_mouse_to_last_detection()
-    _open_with_mouse(keymap)
+    _open_with_mouse()
     start_combat(keymap, style)
     time.sleep(0.5)
     # Pass all valid targets for completion
-    _await_defeat_line(name, keymap, kills, limits, valid_targets=valid_targets)
+    _await_defeat_line(name, kills, limits, valid_targets=valid_targets)
     end_combat(keymap)
 
 def start_combat(keymap, style="rotation"):
@@ -927,7 +927,6 @@ def handle_combat_step(combat_data, keymap):
     counts = combat_data.get('counts', [])
     end_command = combat_data.get('end_command')
     style = combat_data.get('style', 'full')  # Default to 'full' if not specified
-    combat_type = combat_data.get('type')     # Default to None if not specified
 
     target_limits = _build_target_limits(names, counts)
     if not target_limits:
@@ -935,7 +934,7 @@ def handle_combat_step(combat_data, keymap):
         return
 
     print(f"[*] Combat started. Targets: {target_limits}")
-    print(f"[*] Combat type: {combat_type or 'default'}, Style: {style}")
+    print(f"[*] Combat style: {style}")
 
     kills = {name: 0 for name in target_limits}
     start_time = time.time()
@@ -949,7 +948,7 @@ def handle_combat_step(combat_data, keymap):
             break
 
         _cycle_target_selection(keymap)
-        target = _pick_target_via_ocr(remaining, target_limits, kills, name_region, combat_type)
+        target = _pick_target_via_ocr(remaining, target_limits, kills, name_region)
 
         if target:
             _engage_target(target, keymap, kills, target_limits, style=style, valid_targets=names)
@@ -1403,7 +1402,7 @@ def _await_combat_completion_via_act(target_name: str, timeout_sec: float = 90, 
 def _norm_token_generic(s: str) -> str:
     s = (s or "").lower()
     s = s.replace("â€™", "'").replace("â€˜", "'")
-    s = re.sub(r"(?:^[^\w]+)|(?:[^\w]+$)", "", s)  # trim punctuation at ends
+    s = re.sub(r"^[^\w]+|[^\w]+$", "", s)  # trim punctuation at ends
     return s
 
 def _group_ocr_lines(results, region=None):
@@ -1560,9 +1559,11 @@ manifest_raw = load_json(job_file)  # e.g. "pld.json" -> list of {"quest": "..."
 print(f"[+] Loaded data from {job_file}")
 
 # Normalize manifest to a list
-manifest_list = manifest_raw["quests"] if isinstance(manifest_raw, dict) and "quests" in manifest_raw else (
-    manifest_raw if isinstance(manifest_raw, list) else []
-)
+manifest_list = []
+if isinstance(manifest_raw, dict) and "quests" in manifest_raw:
+    manifest_list = manifest_raw["quests"]
+elif isinstance(manifest_raw, list):
+    manifest_list = manifest_raw
 
 # Initialize progress tracking
 progress_manager.initialize(selected_class, manifest_list)
@@ -2048,9 +2049,8 @@ while True:
         exit(0)
 
     # If this was the last step in the current file, drop into interactive mode
-    if current_step == max(step_keys):
-        if _finalize_and_prompt(current_step):
-            continue
+    if current_step == max(step_keys) and _finalize_and_prompt(current_step):
+        continue
 
     # Then advance to the next step for execution (but do not save it yet)
     current_step += 1
