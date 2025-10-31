@@ -16,7 +16,8 @@ import pytesseract
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 import sys
 
-# Import ACT log watcher module
+# Import core modules
+from modules.core import AssetManager
 from modules.act_log_watcher import ACTLogWatcher
 
 # Default success patterns for vnav path completion
@@ -41,28 +42,11 @@ import numpy as np
 import re
 import difflib
 
-# Always resolve files relative to this script's directory
+# Initialize AssetManager with base directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+asset_manager = AssetManager(BASE_DIR)
 
 PROGRESS_STATE_FILE = "progress.json"
-
-def _to_abs(p: str) -> str:
-    """Return absolute path; if relative, anchor at BASE_DIR."""
-    return _normalize_slashes(p if os.path.isabs(p) else os.path.join(BASE_DIR, p))
-
-def _exists_any(p: str) -> bool:
-    """True if path exists either as-is or anchored at BASE_DIR."""
-    return os.path.exists(p) or os.path.exists(_to_abs(p))
-
-def _normalize_slashes(path: str) -> str:
-    return path.replace('\\', '/')
-
-def _assets_fullpath(relpath: str) -> str:
-    r = str(relpath).lstrip("/\\")
-    low = r.lower()
-    if low.startswith("assets/") or low.startswith(f"assets{os.sep}"):
-        return _to_abs(r)
-    return _normalize_slashes(_to_abs(os.path.join("assets", r)))
 
 from PIL import ImageGrab
 from ctypes import wintypes
@@ -462,40 +446,21 @@ def release_key(hex_key_code):
     user32.SendInput(1, ctypes.byref(x), ctypes.sizeof(x))
 
 def load_json(filename):
-    tried = []
+    """Load a JSON file using the AssetManager."""
+    return asset_manager.load_json(filename)
 
-    # 0) allow direct read ONLY for the registry files themselves
-    low = str(filename).lower().replace("\\", "/")
-    if low.endswith("assets/files.json") or low.endswith("/files.json"):
-        p = _to_abs(filename)
-        tried.append(p)
-        with open(p, "r", encoding="utf-8") as f:
-            return json.load(f)
+def resolve_file_path(name_or_path: str) -> str | None:
+    """Resolve a file path using the AssetManager."""
+    return asset_manager.resolve_file(name_or_path)
 
-    if low.endswith("assets/images.json") or low.endswith("/images.json"):
-        p = _to_abs(filename)
-        tried.append(p)
-        with open(p, "r", encoding="utf-8") as f:
-            return json.load(f)
-
-    # 1) resolve via registry
-    _load_asset_indices()  # builds ASSET_FILE_INDEX/ASSET_IMAGE_INDEX from disk directly
-    key = os.path.basename(str(filename)).lower()
-    rel = ASSET_FILE_INDEX.get(key) or ASSET_FILE_INDEX.get(f"{key}.json")
-
-    if rel:
-        rp = _assets_fullpath(rel)
-        tried.append(rp)
-        with open(rp, "r", encoding="utf-8") as f:
-            return json.load(f)
-
-    # No direct path fallbacks; force everything through the registry.
-    raise FileNotFoundError(f"No such JSON via registry: {filename} (tried: {tried})")
+def resolve_image_path(name_or_path: str) -> str | None:
+    """Resolve an image path using the AssetManager."""
+    return asset_manager.resolve_image(name_or_path)
 
 def _substitute_params(obj, params):
     """Replace $key placeholders; keep non-string types when the placeholder is the entire string."""
     if isinstance(obj, str):
-        # Exact-token replacement (preserve type): "â€¦": "$var"
+        # Exact-token replacement (preserve type): "...": "$var"
         if obj.startswith("$") and params and (obj[1:] in params):
             val = params[obj[1:]]
             # Only use exact-token rule when the placeholder is the entire string;
@@ -512,76 +477,6 @@ def _substitute_params(obj, params):
     if isinstance(obj, dict):
         return {k: _substitute_params(v, params) for k, v in obj.items()}
     return obj
-
-# ---- Asset registries (optional QoL) ----
-ASSET_FILE_INDEX = {}
-ASSET_IMAGE_INDEX = {}
-
-def _build_asset_index(spec):
-    """
-    Accepts dict{name->relpath} or list[relpath]. Returns {name_lower: normalized_relpath}.
-    """
-    out = {}
-    try:
-        if isinstance(spec, dict):
-            for k, v in spec.items():
-                if not v: continue
-                name = os.path.basename(str(k)).lower()
-                out[name] = str(v).lstrip("/\\")
-        elif isinstance(spec, list):
-            for p in spec:
-                if not p: continue
-                p = str(p)
-                out[os.path.basename(p).lower()] = p.lstrip("/\\")
-    except Exception:
-        pass
-    return out
-
-def _load_asset_indices():
-    """Load asset registries from disk without going through load_json()."""
-    global ASSET_FILE_INDEX, ASSET_IMAGE_INDEX
-
-    files_json  = None
-    images_json = None
-
-    for cand in ("assets/files.json", "assets/FILES.json"):
-        p = _to_abs(cand)
-        if os.path.exists(p):
-            with open(p, "r", encoding="utf-8") as f:
-                files_json = json.load(f)
-            break
-
-    for cand in ("assets/images.json", "assets/IMAGES.json"):
-        p = _to_abs(cand)
-        if os.path.exists(p):
-            with open(p, "r", encoding="utf-8") as f:
-                images_json = json.load(f)
-            break
-
-    ASSET_FILE_INDEX  = _build_asset_index(files_json)  if files_json  else {}
-    ASSET_IMAGE_INDEX = _build_asset_index(images_json) if images_json else {}
-
-def resolve_file_path(name_or_path: str) -> str | None:
-    """Resolve by registry key (basename) only; normalize result."""
-    p = str(name_or_path)
-    key = os.path.basename(p).lower()
-    _load_asset_indices()  # ensure registry is available
-    rel = ASSET_FILE_INDEX.get(key) or ASSET_FILE_INDEX.get(f"{key}.json")
-    if rel:
-        return os.path.normpath(_assets_fullpath(rel))
-    return None
-
-def resolve_image_path(name_or_path: str) -> str | None:
-    p = str(name_or_path)
-    if _exists_any(p):
-        return _to_abs(p)
-    if p.lower().startswith("assets" + os.sep) or p.lower().startswith("assets/"):
-        return _to_abs(p)
-    key = os.path.basename(p).lower()
-    rel = ASSET_IMAGE_INDEX.get(key)
-    if rel:
-        return _assets_fullpath(rel)
-    return None
 
 def find_process_window(process_name):
     for proc in psutil.process_iter(['pid', 'name']):
@@ -1801,9 +1696,6 @@ act_log_watcher = None
 def reload_jsons():
     global commands_data, locations_data, keymap, npc_data, actions_data, interaction_types
 
-    # load registries first so load_json() can resolve via files.json
-    _load_asset_indices()
-
     mapping = [
         ("commands_data",      "commands.json"),
         ("locations_data",     "locations.json"),
@@ -1900,8 +1792,8 @@ manifest_list = manifest_raw["quests"] if isinstance(manifest_raw, dict) and "qu
     manifest_raw if isinstance(manifest_raw, list) else []
 )
 
-# --- Read progress.json via the registry and prepare helpers ---
-progress_path = resolve_file_path(PROGRESS_STATE_FILE) or _to_abs(PROGRESS_STATE_FILE)
+# --- Initialize progress tracking ---
+progress_path = resolve_file_path(PROGRESS_STATE_FILE) or asset_manager._to_abs(PROGRESS_STATE_FILE)
 try:
     progress = load_json(PROGRESS_STATE_FILE)
 except Exception:

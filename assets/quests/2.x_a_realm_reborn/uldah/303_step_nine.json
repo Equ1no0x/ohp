@@ -5,7 +5,7 @@
 		{ "interaction_type": ["npc_interact", {"name": "cicidoa"}] }
 	],
 	"2": [
-		{ "vnav": ["44.523 0.938 255.608", -1, 5] },
+		{ "vnav": [ ["45.299 2.919 274.223", -1, 15], ["46.836 0.938 255.722", -1, 15] ]},
 		{ "map": "central_thanalan", "npc": "gagari" },
 		{ "interaction_type": ["npc_interact", {"name": "gagari"}] }
 	],

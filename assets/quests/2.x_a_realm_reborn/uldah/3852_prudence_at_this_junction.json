@@ -21,32 +21,29 @@
 		{ "interaction_type": ["npc_interact", {"name": "warin"}] }
 	],
 	"6": [
-		{ "map": "central_thanalan_black_brush", "npc": "independent armorer" },
-		{ "interaction_type": ["change_gear_piece", {"cords": "warin"}, {"name": "warin"}] }
-	],
-	"7": [
+		{ "map": "central_thanalan_black_brush", "npc": "independent_armorer" },
 		{ "interaction_type": ["npc_interact", {"name": "independent_armorer"}] },
 		{ "interaction_type": ["shop_interact", {"type": "Battle Gear"}, {"range": [780, 500, 1140, 570]}, {"item": "Leather Eyepatch"}, {"list_range": [705, 160, 960, 535]}] },
 		{ "interaction_type": ["exit_shop"] }
 	],
-	"8": [
+	"7": [
 		{ "interaction_type": ["change_gear_piece", {"cords": [404, 441]}, {"name": "qitem_leather_eyepatch_icon.png"}] }
 	],
-	"9": [
+	"8": [
 		{ "interaction_type": ["open_tutorial"] },
 		{ "interaction_type": ["close_tutorial"] },
 		{ "interaction_type": ["open_tutorial"] },
 		{ "interaction_type": ["close_tutorial"] }
 	],
-	"10": [
+	"9": [
 		{ "map": "central_thanalan", "npc": "warin" },
 		{ "interaction_type": ["npc_interact", {"name": "warin"}] }
 	],
-	"11": [
+	"10": [
 		{ "interaction_type": ["open_tutorial"] },
 		{ "interaction_type": ["close_tutorial"] }
 	],
-	"12": [
+	"11": [
 		{ "comment": "End of quest file" }
 	]
 }
