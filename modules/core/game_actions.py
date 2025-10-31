@@ -23,29 +23,24 @@ class GameActions:
         self.system_actions.copy_to_clipboard(command)
         time.sleep(0.05)
         
-        # Press Enter -> Ctrl+V -> Enter
-        enter_vk = int(keymap["VK_RETURN"], 16)
-        ctrl_vk = int(keymap["VK_CONTROL"], 16)
-        v_vk = int(keymap["V"], 16)
-        
-        # Enter
-        InputManager.press_key(enter_vk)
+        # Open chat with Enter
+        InputManager.press_virtual_key("VK_RETURN", keymap)
         time.sleep(0.05)
-        InputManager.release_key(enter_vk)
+        InputManager.release_virtual_key("VK_RETURN", keymap)
         time.sleep(0.2)
         
-        # Ctrl+V
-        InputManager.press_key(ctrl_vk)
-        InputManager.press_key(v_vk)
+        # Paste with Ctrl+V
+        InputManager.press_virtual_key("VK_CONTROL", keymap)
+        InputManager.press_virtual_key("V", keymap)
         time.sleep(0.05)
-        InputManager.release_key(v_vk)
-        InputManager.release_key(ctrl_vk)
+        InputManager.release_virtual_key("V", keymap)
+        InputManager.release_virtual_key("VK_CONTROL", keymap)
         time.sleep(0.2)
         
-        # Enter
-        InputManager.press_key(enter_vk)
+        # Send with Enter
+        InputManager.press_virtual_key("VK_RETURN", keymap)
         time.sleep(0.05)
-        InputManager.release_key(enter_vk)
+        InputManager.release_virtual_key("VK_RETURN", keymap)
         time.sleep(0.1)
     
     def toggle_rotation(self, keymap: dict, enable: bool = True) -> None:
