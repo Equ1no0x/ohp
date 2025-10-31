@@ -1,4 +1,3 @@
-"""System-level actions for window management, timing, and clipboard operations."""
 import random
 import time
 import win32api
@@ -10,26 +9,6 @@ import pyperclip
 
 class SystemActions:
     """Manages system-level operations like window management, timing, and clipboard."""
-    
-    def copy_to_clipboard(self, text: str) -> None:
-        """Copy text to system clipboard."""
-        pyperclip.copy("")  # Clear clipboard first
-        time.sleep(0.05)
-        pyperclip.copy(text)
-    
-    def sleep_ms(self, duration_ms: int) -> None:
-        """Sleep for specified milliseconds."""
-        try:
-            time.sleep(float(duration_ms) / 1000.0)
-        except (TypeError, ValueError):
-            print(f"[!] Invalid wait value: {duration_ms}")
-    
-    def wait_sec(self, duration_sec: float) -> None:
-        """Sleep for specified seconds."""
-        try:
-            time.sleep(float(duration_sec))
-        except (TypeError, ValueError):
-            print(f"[!] Invalid wait value: {duration_sec}")
     
     def find_process_window(self, process_name: str) -> int | None:
         """Find window handle for a process by name."""
@@ -84,6 +63,19 @@ class SystemActions:
         except Exception as e:
             print(f"[!] Failed to bring window to front: {e}")
 
+    def copy_to_clipboard(self, text: str) -> None:
+        """Copy text to system clipboard."""
+        pyperclip.copy("")  # Clear clipboard first
+        time.sleep(0.05)
+        pyperclip.copy(text)
+    
+    def wait_sec(self, duration_sec: float) -> None:
+        """Sleep for specified seconds."""
+        try:
+            time.sleep(float(duration_sec))
+        except (TypeError, ValueError):
+            print(f"[!] Invalid wait value: {duration_sec}")
+
     def random_wait(self, low_ms: int, high_ms: int) -> None:
         """Sleep for a random duration between low_ms and high_ms milliseconds."""
         try:
@@ -93,6 +85,6 @@ class SystemActions:
                 low_i, high_i = high_i, low_i
             delay = random.randint(low_i, high_i)
             print(f"[*] Random wait: {delay}ms")
-            self.sleep_ms(delay)
+            time.sleep(delay / 1000.0)
         except (TypeError, ValueError) as e:
             print(f"[!] Invalid random wait bounds: {e}")

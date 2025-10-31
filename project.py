@@ -582,7 +582,7 @@ def _handle_rand(macro_array, index, keymap):
         low_i, high_i = high_i, low_i
     delay = random.randint(low_i, high_i)
     print(f"[*] Random wait: {delay}ms")
-    system_actions.sleep_ms(delay)
+    time.sleep(delay / 1000.0)
     return index + 3
 
 _MACRO_HANDLERS = {

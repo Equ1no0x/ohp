@@ -5,6 +5,7 @@
 		{ "interaction_type": ["npc_interact", {"name": "Zuzumeda"}] }
 	],
 	"2": [
+		{ "vnav": ["-44.594 -10.926 -71.136", -1, 15] },
 		{ "map": "central_thanalan", "npc": "wystan" },
 		{ "interaction_type": ["npc_interact", {"name": "Wystan"}] }
 	],
