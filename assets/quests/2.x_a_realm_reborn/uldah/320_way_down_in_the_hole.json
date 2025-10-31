@@ -39,7 +39,7 @@
 	],
 	"10": [
 		{ "interaction_type": ["use_return"] },
-		{ "map": "uldah", "location": "uldah_aetheryte_tp" },
+		{ "destination": ["-141.747 -3.154 -166.566", 8000, 15] },
 		{ "interaction_type": ["use_aetheryte", {"name": "Adventurers' Guild"}] }
 	],
 	"11": [

@@ -1,8 +1,8 @@
-import ctypes
 import random
 import time
 import json
 import os
+import ctypes
 from datetime import datetime, timezone, timedelta
 # System-related imports now in system_actions.py
 import configparser
@@ -13,7 +13,7 @@ pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tessera
 import sys
 
 # Import core modules
-from modules.core import AssetManager
+from modules.core import AssetManager, InputManager
 from modules.act_log_watcher import ACTLogWatcher
 from modules.core.system_actions import SystemActions
 
@@ -432,32 +432,24 @@ def perform_ocr_find_text_fuzzy(target_text: str, region=None, threshold: float 
 
 def move_mouse_hardware(x, y):
     print(f"[*] Moving mouse to ({x}, {y})")
-    user32.SetCursorPos(x, y)
+    InputManager.move_mouse(x, y)
 
 def press_key(hex_key_code):
-    x = INPUT(type=INPUT_KEYBOARD,
-              ki=KEYBDINPUT(wVk=hex_key_code))
-    user32.SendInput(1, ctypes.byref(x), ctypes.sizeof(x))
+    InputManager.press_key(hex_key_code)
 
 def release_key(hex_key_code):
-    x = INPUT(type=INPUT_KEYBOARD,
-              ki=KEYBDINPUT(wVk=hex_key_code, dwFlags=KEYEVENTF_KEYUP))
-    user32.SendInput(1, ctypes.byref(x), ctypes.sizeof(x))
+    InputManager.release_key(hex_key_code)
 
 def load_json(filename):
-    """Load a JSON file using the AssetManager."""
     return asset_manager.load_json(filename)
 
 def resolve_file_path(name_or_path: str) -> str | None:
-    """Resolve a file path using the AssetManager."""
     return asset_manager.resolve_file(name_or_path)
 
 def resolve_image_path(name_or_path: str) -> str | None:
-    """Resolve an image path using the AssetManager."""
     return asset_manager.resolve_image(name_or_path)
 
 def _substitute_params(obj, params):
-    """Replace $key placeholders; keep non-string types when the placeholder is the entire string."""
     if isinstance(obj, str):
         # Exact-token replacement (preserve type): "...": "$var"
         if obj.startswith("$") and params and (obj[1:] in params):
@@ -508,32 +500,21 @@ def _macro_arg(macro_array, index, offset, cmd):
         return None
 
 def _handle_mouse_button(action, button_id):
-    btn, down_flag, up_flag = mouse_buttons[button_id]
-    flag = down_flag if action == 'press' else up_flag
-    print(f"[*] {'Pressing' if action == 'press' else 'Releasing'} {btn} mouse button")
-    extra = 0
-    if 'XBUTTON' in button_id:
-        extra = 1 if btn == 'x1' else 2
-    user32.mouse_event(flag, 0, 0, 0, extra)
+    print(f"[*] {'Pressing' if action == 'press' else 'Releasing'} mouse button {button_id}")
+    if action == 'press':
+        InputManager.press_mouse_button(button_id)
+    else:
+        InputManager.release_mouse_button(button_id)
 
 def _handle_virtual_key(action, key_name, keymap):
-    try:
-        raw_code = keymap[key_name]
-    except KeyError:
-        print(f"[!] Unknown key name: {key_name}")
-        return
-    try:
-        key_code = int(raw_code, 16)
-    except (TypeError, ValueError):
-        print(f"[!] Invalid key code for {key_name}: {raw_code}")
-        return
     print(f"[*] {'Pressing' if action == 'press' else 'Releasing'} {key_name}")
-    if action == 'press':
-        press_key(key_code)
-    else:
-        release_key(key_code)
-
-# System-related functions have been moved to SystemActions
+    try:
+        if action == 'press':
+            InputManager.press_virtual_key(key_name, keymap)
+        else:
+            InputManager.release_virtual_key(key_name, keymap)
+    except ValueError as e:
+        print(f"[!] {e}")
 
 def _handle_press(macro_array, index, keymap):
     key_name = _macro_arg(macro_array, index, 1, 'press')
@@ -780,7 +761,6 @@ def _quest_source_for(qkey: str, manifest_list) -> str:
             return str(entry.get("source", "class")).lower()
     return "class"
 
-# Progress state management now handled by AssetManager
 def _progress_load_root() -> dict:
     return asset_manager.load_progress_root()
 
@@ -873,21 +853,14 @@ def _pick_target_via_ocr(candidates, limits, kills, region, combat_type=None):
     return None
 
 def _move_mouse_to_last_detection():
-    if last_detection_type == "ocr" and last_ocr_match_center:
-        move_mouse_hardware(*last_ocr_match_center)
-        time.sleep(0.2)
-        return True
-    if last_detection_type == "img" and last_img_match_center:
-        move_mouse_hardware(*last_img_match_center)
-        time.sleep(0.2)
-        return True
-    print("[!] No valid target position available for mouse move.")
-    return False
+    # Update InputManager's tracking variables
+    InputManager.last_detection_type = last_detection_type
+    InputManager.last_ocr_match_center = last_ocr_match_center
+    InputManager.last_img_match_center = last_img_match_center
+    return InputManager.move_to_last_detection()
 
 def _open_with_mouse(keymap):
-    execute_command_sequence(["press", "VK_RBUTTON", "rand", 40, 80, "release", "VK_RBUTTON"], keymap)
-    time.sleep(0.3)
-    execute_command_sequence(["press", "VK_LBUTTON", "rand", 40, 80, "release", "VK_LBUTTON"], keymap)
+    InputManager.open_with_mouse()
 
 def _is_still_in_combat(act_log_watcher, timeout=5.0):
     try:
