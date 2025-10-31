@@ -101,14 +101,7 @@ class InputManager:
         extra = 0
         if 'XBUTTON' in button_id:
             extra = 1 if btn == 'x1' else 2
-        # VOID WINAPI mouse_event(
-        #   DWORD     dwFlags,      // flags for movement and button state
-        #   DWORD     dx,           // change in x coordinate
-        #   DWORD     dy,           // change in y coordinate 
-        #   DWORD     dwData,       // wheel movement for X buttons
-        #   ULONG_PTR dwExtraInfo   // extra info, usually 0
-        # );
-        user32.mouse_event(flag, 0, 0, 0, extra)
+        user32.mouse_event(flag, 0, 0, extra, 0)
 
     @staticmethod
     def _handle_virtual_key(action: str, key_name: str, keymap: dict) -> None:
@@ -165,14 +158,10 @@ class InputManager:
 
     @classmethod
     def open_with_mouse(cls) -> None:
-        """Open game interface element with right+left click sequence"""
-        # Right click
-        cls.press_mouse_button("VK_RBUTTON")
-        time.sleep(0.05)
-        cls.release_mouse_button("VK_RBUTTON")
+        """Open game interface element with right+left click sequence using MacroManager for timing"""
+        from .macro_manager import MacroManager
+        MacroManager.execute_sequence(
+            ["press", "VK_RBUTTON", "rand", 40, 80, "release", "VK_RBUTTON"], {})
         time.sleep(0.3)
-        
-        # Left click
-        cls.press_mouse_button("VK_LBUTTON")
-        time.sleep(0.05)
-        cls.release_mouse_button("VK_LBUTTON")
+        MacroManager.execute_sequence(
+            ["press", "VK_LBUTTON", "rand", 40, 80, "release", "VK_LBUTTON"], {})

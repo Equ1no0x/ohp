@@ -26,6 +26,15 @@ from .system_actions import SystemActions
 # Initialize system actions for timing
 system_actions = SystemActions()
 
+# Mouse button mapping with flags for press/release - copied from v83
+MOUSE_BUTTONS = {
+    "VK_LBUTTON": ("left", 0x0002, 0x0004),
+    "VK_RBUTTON": ("right", 0x0008, 0x0010),
+    "VK_MBUTTON": ("middle", 0x0020, 0x0040),
+    "VK_XBUTTON1": ("x1", 0x0080, 0x0100),
+    "VK_XBUTTON2": ("x2", 0x0080, 0x0100)
+}
+
 class MacroManager:
     """Handles execution of macro command sequences."""
     
@@ -44,40 +53,52 @@ class MacroManager:
         return isinstance(step, dict) and any(k in step for k in ("press", "release", "wait", "rand", "paste"))
 
     @staticmethod
+    def _handle_mouse_button(action: str, button_id: str) -> None:
+        """Handle mouse button press/release actions using v83 logic"""
+        btn, _, _ = MOUSE_BUTTONS[button_id]
+        print(f"[*] {'Pressing' if action == 'press' else 'Releasing'} {btn} mouse button")
+        InputManager._handle_mouse_button(action, button_id)
+
+    @staticmethod
+    def _handle_press_release(action: str, macro_array: list, index: int, keymap: dict) -> int:
+        """Common handler for press/release commands, matches v83 behavior"""
+        target = MacroManager._macro_arg(macro_array, index, 1, action)
+        if target is None:
+            return len(macro_array)
+            
+        if target in MOUSE_BUTTONS:
+            MacroManager._handle_mouse_button(action, target)
+        else:
+            if action == 'press':
+                InputManager.press_virtual_key(target, keymap)
+            else:
+                InputManager.release_virtual_key(target, keymap)
+        return index + 2
+
+    @staticmethod
     def _handle_press(macro_array: list, index: int, keymap: dict) -> int:
         """Handle 'press' command in a macro sequence."""
-        key_name = MacroManager._macro_arg(macro_array, index, 1, 'press')
-        if key_name is None:
-            return index + 1
-            
-        print(f"[*] Pressing {key_name}")
-        InputManager.press_virtual_key(key_name, keymap)
-        return index + 2
+        return MacroManager._handle_press_release('press', macro_array, index, keymap)
 
     @staticmethod
     def _handle_release(macro_array: list, index: int, keymap: dict) -> int:
         """Handle 'release' command in a macro sequence."""
-        key_name = MacroManager._macro_arg(macro_array, index, 1, 'release')
-        if key_name is None:
-            return index + 1
-            
-        print(f"[*] Releasing {key_name}")
-        InputManager.release_virtual_key(key_name, keymap)
-        return index + 2
+        return MacroManager._handle_press_release('release', macro_array, index, keymap)
 
     @staticmethod
     def _handle_wait(macro_array: list, index: int, keymap: dict) -> int:
         """Handle 'wait' command in a macro sequence."""
-        delay = MacroManager._macro_arg(macro_array, index, 1, 'wait')
-        if delay is None:
-            return index + 1
+        duration = MacroManager._macro_arg(macro_array, index, 1, 'wait')
+        if duration is None:
+            return len(macro_array)
             
         try:
-            delay_i = int(delay)
-            print(f"[*] Wait: {delay_i}ms")
-            time.sleep(delay_i / 1000.0)
+            ms = int(duration)
+            print(f"[*] Wait: {ms}ms")
+            time.sleep(ms / 1000.0)
         except (TypeError, ValueError):
-            print(f"[!] Invalid wait value: {delay}")
+            print(f"[!] Invalid wait value: {duration}")
+            return len(macro_array)
             
         return index + 2
 
@@ -100,6 +121,7 @@ class MacroManager:
             time.sleep(delay / 1000.0)
         except (TypeError, ValueError):
             print(f"[!] Invalid rand bounds: {low}, {high}")
+            return index + 3
             
         return index + 3
 
@@ -113,14 +135,7 @@ class MacroManager:
 
     @classmethod
     def execute_sequence(cls, macro_array: list, keymap: dict, command_text: Optional[str] = None) -> None:
-        """
-        Execute a macro command sequence.
-        
-        Args:
-            macro_array: List of macro commands to execute
-            keymap: Dictionary mapping key names to virtual key codes
-            command_text: Optional description of the command (for logging)
-        """
+        """Execute a macro command sequence, matching v83 behavior exactly"""
         index = 0
         length = len(macro_array)
         
@@ -134,4 +149,8 @@ class MacroManager:
                 continue
                 
             next_index = handler(macro_array, index, keymap)
-            index = next_index if next_index > index else index + 1
+            # v83 logic: only use next_index if it's greater than current index
+            if next_index <= index:
+                index += 1
+            else:
+                index = next_index

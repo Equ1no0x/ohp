@@ -5,11 +5,15 @@
 		{ "interaction_type": ["npc_interact", {"name": "Dadanen"}] }
 	],
 	"2": [
+		{ "map": "western_thanalan", "location": "horizon_aetheryte" },
+		{ "interaction_type": ["attune_aetheryte"] }
+	],
+	"3": [
 		{ "comment": "WalkTo Drunken Stag" },
 		{ "vnav": ["239.527 58.357 -161.353", 30000, 2.2] },
 		{ "interaction_type": ["npc_interact", {"name": "Drunken Stag"}] }
 	],
-	"3": [
+	"4": [
 		{ "comment": "End of quest file" }
 	]
 }
