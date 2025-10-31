@@ -346,7 +346,7 @@ def perform_img_search(template_path, threshold=0.8):
 
     orig = template_path
     template_path = resolve_image_path(template_path) or template_path
-    print(f"[*] Performing image search with template: {orig} â†’ {template_path}")
+    print(f"[*] Performing image search with template: {orig} -> {template_path}")
 
     # Capture full screen
     screenshot = ImageGrab.grab()
@@ -825,7 +825,7 @@ def resolve_goto_chain(file, step):
             break
         visited.add((file, step))
         if os.path.exists(target_file):
-            print(f"[*] Resolving startup GOTO â†’ {target_file}, step {target_step}")
+            print(f"[*] Resolving startup GOTO -> {target_file}, step {target_step}")
             file = target_file
             step = int(target_step)
         else:
@@ -1197,7 +1197,7 @@ def vnav_go(coord_str: str, timeout_ms: int, tolerance: float, keymap) -> bool:
         return False
 
     cmd = f"/vnav moveto {coord_str}"
-    print(f"  [*] vnav â†’ {cmd} (tolerance={tolerance})")
+    print(f"  [*] vnav -> {cmd} (tolerance={tolerance})")
     send_chat_command(cmd, keymap)
 
     # NEW: negative timeout => wait forever
@@ -1235,7 +1235,7 @@ def wait_until_near(coord_str: str, timeout_ms: int, tolerance: float) -> bool:
         print(f"[!] destination: {e}")
         return False
 
-    print(f"  [*] destination â†’ target {coord_str} (tolerance={tolerance})")
+    print(f"  [*] destination -> target {coord_str} (tolerance={tolerance})")
 
     wait_forever = (timeout_ms is None) or (int(timeout_ms) < 0)
     start = time.time()
@@ -1708,10 +1708,10 @@ selected_class = selected_entry.get("id", user_in)
 
 # Optional: show the resolved path for clarity (still loaded via the registry)
 job_file_resolved = resolve_file_path(job_file) or job_file
-print(f"[+] Selected job: {selected_class} â†’ {job_file_resolved}")
+print(f"[+] Selected job: {selected_class} -> {job_file_resolved}")
 
 # --- ALWAYS load the CLASS file (manifest) first ---
-manifest_raw = load_json(job_file)  # e.g. "pld.json" â†’ list of {"quest": "...", "source": "shared"|"class"}
+manifest_raw = load_json(job_file)  # e.g. "pld.json" -> list of {"quest": "...", "source": "shared"|"class"}
 print(f"[+] Loaded data from {job_file}")
 
 # Normalize manifest to a list
@@ -1762,7 +1762,7 @@ if cur.get("job") == selected_class and cur.get("quest"):
     # resolve "<qkey>.json" first, then bare qkey (both via files.json)
     qpath = resolve_file_path(f"{qkey}.json") or resolve_file_path(qkey)
     if qpath:
-        # if itâ€™s not completed in either shared or class space, resume it
+        # if it's not completed in either shared or class space, resume it
         if not _is_completed(qkey, "shared") and not _is_completed(qkey, "class"):
             current_file = qpath
             current_step = int(cur.get("step") or _saved_step(qkey, "shared") or _saved_step(qkey, "class") or 1)
@@ -1846,7 +1846,7 @@ def _resume_from_saved_step() -> bool:
     _progress_save_root(root)
     progress = root
 
-    print(f"[*] RESUME → {os.path.basename(current_file)} step {current_step}")
+    print(f"[*] RESUME -> {os.path.basename(current_file)} step {current_step}")
     return True
 
 def _is_valid_manifest_entry(entry) -> tuple[bool, str, str]:
@@ -1931,12 +1931,12 @@ while True:
     if str(current_step) not in data:
         next_keys = [k for k in step_keys if k >= current_step]
         if not next_keys:
-            # No more steps in this file â†’ mark completed, return via stack if any,
+            # No more steps in this file -> mark completed, return via stack if any,
             # else auto-advance to next incomplete quest; only open console if none exist.
             if _finalize_and_prompt(current_step - 1):
                 continue
 
-        # else: step exists later in file â†’ advance to it
+        # else: step exists later in file -> advance to it
         current_step = min(next_keys)
 
     # If we reached here, current_step is valid for current_file
@@ -1966,7 +1966,7 @@ while True:
     if str(current_step) not in data:
         next_keys = [k for k in step_keys if k >= current_step]
         if not next_keys:
-            # No more steps in this file → mark completed, return via stack if any,
+            # No more steps in this file -> mark completed, return via stack if any,
             # else auto-advance to next incomplete quest; only open console if none exist.
             if _finalize_and_prompt(current_step - 1):
                 continue
@@ -2031,7 +2031,7 @@ while True:
 
             total = len(legs)
             for i, (coord_str, timeout_ms, tolerance) in enumerate(legs, start=1):
-                print(f"  [*] vnav leg {i}/{total} â†’ {coord_str} (tolerance={tolerance})")
+                print(f"  [*] vnav leg {i}/{total} -> {coord_str} (tolerance={tolerance})")
                 ok = vnav_go(coord_str, timeout_ms, tolerance, keymap)
                 if not ok:
                     print(f"[!] vnav leg {i}/{total} failed; aborting remaining legs.")
@@ -2083,7 +2083,7 @@ while True:
 
                 total = len(legs)
                 for i, (coord_str, timeout_ms, tolerance) in enumerate(legs, start=1):
-                    print(f"  [*] From {map_name}: vnav leg {i}/{total} â†’ {coord_str} (tolerance={tolerance})")
+                    print(f"  [*] From {map_name}: vnav leg {i}/{total} -> {coord_str} (tolerance={tolerance})")
                     ok = vnav_go(coord_str, timeout_ms, tolerance, keymap)
                     if not ok:
                         print(f"[!] vnav leg {i}/{total} failed; aborting remaining legs for {poi_key}.")
@@ -2109,7 +2109,7 @@ while True:
                     print(f"[!] {e}")
                     continue
 
-                print(f"  [*] From {map_name}: destination check â†’ {coord_str} (tolerance={tolerance})")
+                print(f"  [*] From {map_name}: destination check -> {coord_str} (tolerance={tolerance})")
                 wait_until_near(coord_str, timeout_ms, tolerance)
                 continue
 
@@ -2197,7 +2197,7 @@ while True:
             next_step = int(current_step) + 1
             GOTO_STACK.append((current_file, next_step))
 
-            print(f"[*] GOTO → {target_file}, step {target_step}")
+            print(f"[*] GOTO -> {target_file}, step {target_step}")
 
             # Switch to target file
             current_file = target_file
