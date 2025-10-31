@@ -90,7 +90,7 @@
 		{ "await": [2000, "ocr", true, "VK_NUMPAD0", 10000] },
 		{ "rand": [56, 126]},
 		{ "command": "$emote" },
-		{ "rand": [1500, 2500]}
+		{ "rand": [2500, 3500]}
 	],
 	"shop_interact": [
 		{ "ocr": "$type" },

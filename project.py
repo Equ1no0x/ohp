@@ -13,12 +13,13 @@ pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tessera
 import sys
 
 # Import core modules
-from modules.core import AssetManager, InputManager
-from modules.act_log_watcher import ACTLogWatcher
+from modules.core import AssetManager, InputManager, GameActions
 from modules.core.system_actions import SystemActions
+from modules.act_log_watcher import ACTLogWatcher
 
-# Initialize system actions
+# Initialize core components
 system_actions = SystemActions()
+game_actions = GameActions()
 
 # Initialize AssetManager with base directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -470,27 +471,8 @@ def _substitute_params(obj, params):
     return obj
 
 def send_chat_command(command, keymap):
-    # Copy text
-    pyperclip.copy("")
-    time.sleep(0.05)
-    pyperclip.copy(command)
-
-    # Open chat
-    enter_vk = int(keymap["VK_RETURN"], 16)
-    press_key(enter_vk); time.sleep(0.05); release_key(enter_vk)
-    time.sleep(0.2)
-
-    # Paste
-    ctrl = int(keymap["VK_LCONTROL"], 16)
-    vkey = int(keymap["V"], 16)
-    press_key(ctrl); time.sleep(0.05)
-    press_key(vkey); time.sleep(0.05)
-    release_key(vkey); time.sleep(0.05)
-    release_key(ctrl); time.sleep(0.2)
-
-    # Send
-    press_key(enter_vk); time.sleep(0.05); release_key(enter_vk)
-    time.sleep(0.1)
+    """Send a chat command to the game."""
+    game_actions.send_chat_command(command, keymap)
 
 def _macro_arg(macro_array, index, offset, cmd):
     try:
@@ -1055,22 +1037,18 @@ def start_combat(keymap, style="rotation"):
     print(f"[*] Starting combat rotation (style={style})...")
 
     if style in ("full", "rotation"):
-        send_chat_command("/rotation Manual", keymap)
-        time.sleep(0.2)
+        game_actions.toggle_rotation(keymap, True)
 
     if style in ("full", "ai"):
-        send_chat_command("/bmrai on", keymap)
-        time.sleep(0.2)
+        game_actions.toggle_combat_ai(keymap, True)
 
     send_chat_command("/vnav movetarget", keymap)
     time.sleep(0.2)
 
 def end_combat(keymap):
     print("[*] Ending combat rotation...")
-    send_chat_command("/rotation off", keymap)
-    time.sleep(0.2)
-    send_chat_command("/bmrai off", keymap)
-    time.sleep(0.2)
+    game_actions.toggle_rotation(keymap, False)
+    game_actions.toggle_combat_ai(keymap, False)
 
 def _build_target_limits(names, counts):
     default = counts[0] if counts else 1
