@@ -124,12 +124,28 @@ class AssetManager:
         return None
 
     def resolve_quest_by_id(self, quest_id: str) -> Optional[str]:
-        """Find quest file path by ID using direct lookup or quests.json registry."""
-        path = self.resolve_file(quest_id) or self.resolve_file(f"{quest_id}.json")  # Try ID directly
+        """Find quest file path by ID using multiple resolution methods.
+        
+        Resolution order:
+        1. Look for files in registry starting with quest_id_ pattern
+        2. Try direct ID lookup
+        3. Check quests.json registry
+        """
+        # Clean the ID
+        quest_id = str(quest_id).strip()
+        
+        # 1. Look for files starting with this ID (e.g. "253_way_of_the_gladiator.json")
+        matching_files = [k for k in self.file_index.keys() if k.startswith(f"{quest_id}_")]
+        if matching_files:
+            return self.resolve_file(matching_files[0])
+
+        # 2. Try direct ID lookup
+        path = self.resolve_file(quest_id) or self.resolve_file(f"{quest_id}.json")
         if path:
             return path
 
-        quest_index = self.resolve_file("quests.json")  # Try quest index lookup
+        # 3. Check quests.json registry
+        quest_index = self.resolve_file("quests.json")
         if quest_index and os.path.exists(quest_index):
             try:
                 with open(quest_index, "r", encoding="utf-8") as f:

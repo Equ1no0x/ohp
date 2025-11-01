@@ -560,7 +560,7 @@ def _resolve_exec_command(command: str):
     step_arg = parts[2] if len(parts) >= 3 else None
     cont_arg = parts[3] if len(parts) >= 4 else None
     path_candidate = resolve_file_path(f"{target}.json") or resolve_file_path(target) or target
-    if not _exists_any(path_candidate):
+    if not os.path.exists(path_candidate):
         print(f"[!] /exec: could not resolve '{target}' via assets/files.json")
         return None
     try:
@@ -764,17 +764,28 @@ def _is_still_in_combat(act_log_watcher, timeout=5.0):
         return False
 
 def _wait_for_combat_start(act_log_watcher, start_wait=5.0):
-    """Wait up to start_wait seconds for combat to begin."""
+    """Wait up to start_wait seconds for combat to begin or detect a defeat."""
     print("[*] Waiting for combat to begin...")
+    start_ts = _get_latest_combat_timestamp(act_log_watcher)
     combat_wait_start = time.time()
     combat_detected = False
     
     while time.time() - combat_wait_start < start_wait:
+        # Check for combat
         if _is_still_in_combat(act_log_watcher):
             if not combat_detected:
                 print("[*] Combat detected, monitoring for defeats...")
                 combat_detected = True
             return True
+            
+        # Also check for any defeats that happened very quickly
+        result, _ = act_log_watcher.check_combat_completion(
+            "", timeout=0.1, since_timestamp=start_ts
+        )
+        if result:
+            print("[*] Combat defeat detected during startup")
+            return True
+            
         # Add small delay to prevent excessive CPU usage
         time.sleep(0.1)
     
@@ -838,21 +849,32 @@ def _process_defeat(act_log_watcher, defeated_target, target, valid_targets, kil
         return False, time.time(), False
     
     print("[DEBUG] Combat appears to be over")
-    return True, last_combat_time, True
+    # If combat is over but we haven't met our target count, return completion status as False
+    return True, last_combat_time, False
 
 def _monitor_combat_cycle(act_log_watcher, target, valid_targets, kills, limits, last_combat_time):
     """Run one cycle of combat monitoring.
     Returns: (should_exit, new_last_combat_time, completion_status)"""
-    # Check for defeats
-    act_result, defeated_target = _await_combat_completion_via_act(target, timeout_sec=2.0, valid_targets=valid_targets)
+    # Get current timestamp before any checks
+    current_ts = _get_latest_combat_timestamp(act_log_watcher)
     
-    if act_result:
-        return _process_defeat(act_log_watcher, defeated_target, target, valid_targets, kills, limits, last_combat_time)
-        
-    # No defeat - check combat status
+    # First check combat status to get latest state
     in_combat, combat_over = _check_combat_status(act_log_watcher, last_combat_time)
+    
+    # Check for recent defeats, with a very short timeout since we're looking at past events
+    valid_targets_lower = {t.lower(): t for t in (valid_targets or [target])}
+    defeat_found, defeated_name = _check_for_target_defeat(valid_targets_lower, act_log_watcher, current_ts)
+    
+    if defeat_found:
+        return _process_defeat(act_log_watcher, defeated_name, target, valid_targets, kills, limits, last_combat_time)
+    
+    # If still in combat but no defeat yet, wait for new defeats
     if in_combat:
+        act_result, defeated_target = _await_combat_completion_via_act(target, timeout_sec=2.0, valid_targets=valid_targets)
+        if act_result:
+            return _process_defeat(act_log_watcher, defeated_target, target, valid_targets, kills, limits, last_combat_time)
         return False, time.time(), False
+        
     if combat_over:
         return True, last_combat_time, False
         
@@ -1980,10 +2002,9 @@ while True:
                 target = raw
                 target_step = 1
 
-            # If target is a number, it's a quest ID - look up by quest ID format in files.json 
+            # If target is a number, it's a quest ID - resolve through asset manager
             if isinstance(target, (int, str)) and str(target).strip().isdigit():
                 quest_id = str(target).strip()
-                # Try to resolve the quest file by ID
                 target_file = asset_manager.resolve_quest_by_id(quest_id)
                 if not target_file:
                     print(f"[!] GOTO target not found: Quest ID {quest_id}")
@@ -1996,7 +2017,7 @@ while True:
             else:
                 target_file = str(target)
 
-            if not _exists_any(target_file):
+            if not os.path.exists(target_file):
                 print(f"[!] GOTO target not found: {raw}")
                 continue
 

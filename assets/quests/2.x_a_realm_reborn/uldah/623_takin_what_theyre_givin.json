@@ -45,7 +45,7 @@
 	"8": [
 		{ "interaction_type": ["open_tutorial"] },
 		{ "interaction_type": ["close_tutorial"] },
-		{ "destination": ["68.473 45.142 -202.915", 90000, 2.5] }
+		{ "destination": ["68.473 45.142 -202.915", 90000, 15] }
 	],
 	"9": [
 		{ "map": "western_thanalan_horizon", "npc": "dadanen" },

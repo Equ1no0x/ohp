@@ -78,7 +78,7 @@
 		{ "interaction_type": ["attune_aethernet_shard"] },
 		{ "map": "uldah", "location": "uldah_aetheryte" },
 		{ "interaction_type": ["attune_aetheryte"] },
-		{ "rand": [1500, 2500] },
+		{ "rand": [3500, 4500] },
 		{ "interaction_type": ["open_tutorial"] },
 		{ "interaction_type": ["close_tutorial"] }
 	],
