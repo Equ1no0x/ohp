@@ -22,7 +22,7 @@
 		{ "vnav": [ "139.778 29.217 1.002", 5000, 15]  },
 		{ "rand": [1500, 1800]},
 		{ "vnav": [ "148.129 28.623 -14.555", 5000, 18]  },
-		{ "command": "/puseitem \"Potion\" <me>" },
+		{ "command": "/puseitem \"Potion\"" },
 		{
 			"combat": {
 				"region": "783, 30, 1180, 48",
@@ -47,7 +47,8 @@
 				"style": "rotation",
 				"counts": [1]
 			}
-		}
+		},
+		{ "command": "/puseitem \"Potion\"" }
 	],
 	"6": [
 		{ "comment": "Leave the area" },

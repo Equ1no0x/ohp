@@ -7,13 +7,11 @@ from datetime import datetime, timezone, timedelta
 # System-related imports now in system_actions.py
 import configparser
 import subprocess
-import pytesseract
 import pyperclip
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 import sys
 
 # Import core modules
-from modules.core import AssetManager, InputManager, GameActions, MacroManager, ProgressManager
+from modules.core import AssetManager, InputManager, GameActions, MacroManager, ProgressManager, OCRSystem
 from modules.core.system_actions import SystemActions
 from modules.act_log_watcher import ACTLogWatcher
 
@@ -28,26 +26,12 @@ asset_manager = AssetManager(BASE_DIR)
 # Initialize ProgressManager
 progress_manager = ProgressManager(asset_manager)
 
-# Default success patterns for vnav path completion
-VNAV_SUCCESS_PATTERNS = ["[INF] [vnavmesh] Pathfinding complete"]
-
-# === Suppress console popup for Tesseract subprocess on Windows ===
-_original_popen = subprocess.Popen
-
-def hidden_popen(*args, **kwargs):
-    if isinstance(args[0], list) and 'tesseract' in args[0][0].lower():
-        si = subprocess.STARTUPINFO()
-        si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        si.wShowWindow = subprocess.SW_HIDE
-        kwargs['startupinfo'] = si
-    return _original_popen(*args, **kwargs)
-
-subprocess.Popen = hidden_popen
+# Initialize OCR System
+ocr_system = OCRSystem()
 
 import cv2
 import numpy as np
 import re
-import difflib
 from PIL import ImageGrab
 from ctypes import wintypes
 
@@ -58,19 +42,8 @@ KEYEVENTF_KEYUP = 0x0002
 MAPVK_VK_TO_VSC = 0
 
 wintypes.ULONG_PTR = wintypes.WPARAM
-last_ocr_match_center = None
 last_img_match_center = None
-last_detection_type = None
 current_step = None
-
-# OCR: default ceiling for general OCR calls
-TESSERACT_TIMEOUT_SEC = 5
-OCR_FUZZY_ENABLED = True
-OCR_FUZZY_THRESHOLD = 0.90
-
-# Debug printing for OCR when no match (or low fuzzy score)
-OCR_DEBUG_DUMP = True          # set False to silence dumps
-OCR_DEBUG_MAX_LINES = 1        # how many OCR "lines" to print
 
 # Screen region of the in-game coordinates widget: (left, top, right, bottom)
 VNAV_COORDS_REGION = (1298, 162, 1685, 181) # adjust if your UI scale changes
@@ -122,224 +95,19 @@ class INPUT(ctypes.Structure):
 
 LPINPUT = ctypes.POINTER(INPUT)
 
-# --- OCR engine with fallbacks (multi-line friendly) ---
-def _iter_ocr_configs(langs, psms):
-    for lang in langs:
-        for psm in psms:
-            yield lang, psm
 
-def _try_ocr_image(img, lang, psm, timeout):
-    try:
-        result = pytesseract.image_to_data(
-            img,
-            output_type=pytesseract.Output.DICT,
-            config=f"--psm {psm}",
-            timeout=timeout,
-            lang=lang
-        )
-        return result, None
-    except Exception as exc:
-        return None, exc
 
-def _ocr_has_tokens(payload):
-    return any((token or "").strip() for token in payload.get("text", []))
 
-def _empty_ocr_payload():
-    return {
-        "text": [],
-        "left": [],
-        "top": [],
-        "width": [],
-        "height": [],
-        "block_num": [],
-        "par_num": [],
-        "line_num": []
-    }
 
-def _debug_ocr_success(lang, psm, payload):
-    if not OCR_DEBUG_DUMP:
-        return
-    non_empty = sum(1 for token in payload.get("text", []) if token and token.strip())
-    print(f"[dbg][ocr] used lang='{lang}' psm={psm} tokens={non_empty}")
 
-def _ocr_image_to_data(img, timeout_sec=None):
-    psms = [6, 7, 3, 11, 13]
-    langs = ['eng+ffxiv', 'eng']
-    timeout = timeout_sec if timeout_sec is not None else TESSERACT_TIMEOUT_SEC
-
-    last_exc = None
-    for lang, psm in _iter_ocr_configs(langs, psms):
-        payload, err = _try_ocr_image(img, lang, psm, timeout)
-        if err is not None:
-            last_exc = err
-            continue
-        if not _ocr_has_tokens(payload):
-            continue
-        _debug_ocr_success(lang, psm, payload)
-        return payload, lang, psm
-
-    if last_exc:
-        print(f"[dbg][ocr] OCR attempts failed; last error: {last_exc}")
-
-    return _empty_ocr_payload(), None, None
-
-# --- token span search helpers ---
-def _split_target_words(target_norm):
-    return [word for word in target_norm.split() if word]
-
-def _span_length_range(token_count, target_len, max_extra):
-    if token_count <= 0 or target_len <= 0:
-        return range(0)
-    min_len = max(1, target_len - max_extra)
-    max_len = min(token_count, target_len + max_extra)
-    return range(min_len, max_len + 1)
-
-def _iter_candidate_chunks(tokens_norm, lengths):
-    token_count = len(tokens_norm)
-    for window_len in lengths:
-        limit = token_count - window_len + 1
-        if limit <= 0:
-            continue
-        for start in range(limit):
-            end = start + window_len
-            yield start, end, " ".join(tokens_norm[start:end])
-
-def _exact_span_for_target(tokens_norm, target_norm, target_words, max_extra):
-    if target_norm not in " ".join(tokens_norm):
-        return None
-    default_span = (0, len(tokens_norm) - 1, 1.0)
-    lengths = _span_length_range(len(tokens_norm), len(target_words), max_extra)
-    for start, end, chunk in _iter_candidate_chunks(tokens_norm, lengths):
-        if target_norm in chunk:
-            return (start, end - 1, 1.0)
-    return default_span
-
-def _fuzzy_span_for_target(tokens_norm, target_norm, target_words, max_extra, matcher_factory):
-    best_ratio, best_span = 0.0, None
-    lengths = _span_length_range(len(tokens_norm), len(target_words), max_extra)
-    for start, end, chunk in _iter_candidate_chunks(tokens_norm, lengths):
-        ratio = matcher_factory(None, chunk, target_norm).ratio()
-        if ratio > best_ratio:
-            best_ratio = ratio
-            best_span = (start, end - 1, ratio)
-    return best_span
-
-def _normalize_target_text(target_text):
-    words = [_norm_token_generic(part) for part in target_text.strip().split()]
-    words = [w for w in words if w]
-    return words, " ".join(words)
-
-def _span_center_from_boxes(boxes, start, end):
-    xs = [boxes[i][0] for i in range(start, end + 1)]
-    ys = [boxes[i][1] for i in range(start, end + 1)]
-    xe = [boxes[i][0] + boxes[i][2] for i in range(start, end + 1)]
-    ye = [boxes[i][1] + boxes[i][3] for i in range(start, end + 1)]
-    x0, y0, x1, y1 = min(xs), min(ys), max(xe), max(ye)
-    return ((x0 + x1) // 2, (y0 + y1) // 2)
-
-def _locate_exact_ocr_match(lines, target_words):
-    if not target_words:
-        return None
-    span_len = len(target_words)
-    for info in lines:
-        norm_tokens = info.get('norm_tokens') or []
-        if len(norm_tokens) < span_len:
-            continue
-        for start in range(len(norm_tokens) - span_len + 1):
-            if norm_tokens[start:start + span_len] == target_words:
-                center = _span_center_from_boxes(info['boxes'], start, start + span_len - 1)
-                return center
-    return None
-
-def _locate_fuzzy_ocr_match(lines, target_norm_line, threshold):
-    if not target_norm_line:
-        return None
-    best_ratio, best_center, best_text = 0.0, None, None
-    for info in lines:
-        norm_tokens = info.get('norm_tokens') or []
-        if not norm_tokens:
-            continue
-        span = _best_span_for_target(norm_tokens, target_norm_line, max_extra=2)
-        if not span:
-            continue
-        start, end, ratio = span
-        chunk_norm = " ".join(norm_tokens[start:end + 1])
-        if ratio < threshold and target_norm_line not in chunk_norm:
-            continue
-        if ratio >= best_ratio:
-            center = _span_center_from_boxes(info['boxes'], start, end)
-            matched_text = " ".join(norm_tokens[start:end + 1])
-            best_ratio, best_center, best_text = ratio, center, matched_text
-    if best_center is not None:
-        return best_ratio, best_center, best_text
-    return None
-
-def _best_fuzzy_ratio(lines, target_norm_line):
-    best_ratio = 0.0
-    for info in lines:
-        norm_tokens = info.get('norm_tokens') or []
-        if not norm_tokens:
-            continue
-        span = _best_span_for_target(norm_tokens, target_norm_line, max_extra=2)
-        if span:
-            best_ratio = max(best_ratio, span[2])
-    return best_ratio
-
-def _handle_ocr_miss(results, region, target_text, target_norm_line):
-    try:
-        _dump_ocr_debug(results, region, target_norm_line)
-        lines_dbg = _group_ocr_lines(results, region)
-        if lines_dbg:
-            preview = " | ".join(ln['raw'] for ln in lines_dbg[:3])
-            print(f"[dbg][ocr] preview: {preview}")
-    except Exception:
-        pass
-    print(f"[!] Text '{target_text}' not found on screen.")
-    return False
-
-# --- pick the best token-span inside a line for a target (exact or fuzzy) ---
-def _best_span_for_target(tokens_norm, target_norm, max_extra=2):
-    import difflib as _dl
-    if not tokens_norm or not target_norm:
-        return None
-    target_words = _split_target_words(target_norm)
-    if not target_words:
-        return None
-    exact = _exact_span_for_target(tokens_norm, target_norm, target_words, max_extra)
-    if exact:
-        return exact
-    return _fuzzy_span_for_target(tokens_norm, target_norm, target_words, max_extra, _dl.SequenceMatcher)
 
 def perform_ocr_and_find_text(target_text, region=None):
-    global last_ocr_match_center, last_detection_type
-
-    print(f"[*] Performing OCR looking for: '{target_text}'")
-    screenshot = ImageGrab.grab(bbox=region)
-
-    results, _lang, _psm = _ocr_image_to_data(screenshot, timeout_sec=TESSERACT_TIMEOUT_SEC)
-    target_words, target_norm_line = _normalize_target_text(target_text)
-    lines = _group_ocr_lines(results, region)
-
-    exact_center = _locate_exact_ocr_match(lines, target_words)
-    if exact_center:
-        last_ocr_match_center = exact_center
-        last_detection_type = "ocr"
-        print(f"[*] Found '{target_text}' at {exact_center} [exact]")
-        return True
-
-    fuzzy_hit = None
-    if OCR_FUZZY_ENABLED and target_norm_line:
-        fuzzy_hit = _locate_fuzzy_ocr_match(lines, target_norm_line, OCR_FUZZY_THRESHOLD)
-    if fuzzy_hit:
-        ratio, center, matched_text = fuzzy_hit
-        last_ocr_match_center = center
-        last_detection_type = "ocr"
-        print(f"[*] Fuzzy matched '{target_text}' ~ '{matched_text}' ({ratio*100:.1f}%) at {center}")
-        return True
-
-    return _handle_ocr_miss(results, region, target_text, target_norm_line)
+    """Use OCRSystem to find text in the specified region."""
+    global last_detection_type
+    return ocr_system.find_text(target_text, region)
 
 def perform_img_search(template_path, threshold=0.8):
+    """Temporary bridge method - to be moved to a dedicated ImageRecognition module."""
     global last_img_match_center, last_detection_type
 
     orig = template_path
@@ -374,59 +142,9 @@ def perform_img_search(template_path, threshold=0.8):
         print("[!] Image not found")
         return False
 
-# --- Fuzzy OCR for chat lines (case-insensitive, punctuation-tolerant) ---
-STOPWORDS_COMMON = {
-    'the', 'a', 'an', 'to', 'for', 'with', 'and', 'or', 'you', 'your', 'from', 'at', 'on', 'in', 'it', 'is', 'are', 'was', 'were', 'of', 'this', 'that', 'these', 'those'
-}
-
 CONSOLE_PROMPT = "[+] Enter a command (e.g. '/exec <quest|file> [step]' or '/resume'), or 'exit' to quit."
 
-def _normalize_chat_text(s: str) -> str:
-    s = (s or "").lower()
-    s = s.translate({0x2019: ord("'"), 0x2018: ord("'"), 0x0060: ord("'")})
-    s = s.rstrip('.')
-    s = re.sub(r'\s+', ' ', s).strip()
-    return s
 
-def _important_tokens(text: str) -> set[str]:
-    tokens = [tok for tok in text.split() if tok and tok not in STOPWORDS_COMMON]
-    return set(tokens)
-
-def perform_ocr_find_text_fuzzy(target_text: str, region=None, threshold: float = 0.90,
-                                ocr_timeout_sec: float | None = None) -> bool:
-    """Fuzzy search across the region; centers on the matched token span when successful."""
-    global last_ocr_match_center, last_detection_type
-
-    target_norm = _normalize_chat_text(target_text)
-    target_tokens = _important_tokens(target_norm)
-    print(f"[*] Performing FUZZY OCR looking for (~{int(threshold*100)}%): '{target_norm}'")
-
-    screenshot = ImageGrab.grab(bbox=region)
-    timeout = ocr_timeout_sec if ocr_timeout_sec is not None else TESSERACT_TIMEOUT_SEC
-    results, _lang, _psm = _ocr_image_to_data(screenshot, timeout_sec=timeout)
-    lines = _group_ocr_lines(results, region)
-
-    match = _locate_fuzzy_ocr_match(lines, target_norm, threshold)
-    if match:
-        ratio, center, matched_text = match
-        matched_norm = _normalize_chat_text(matched_text)
-        matched_tokens = _important_tokens(matched_norm)
-        if target_tokens and not target_tokens.issubset(matched_tokens):
-            if OCR_DEBUG_DUMP:
-                missing = sorted(target_tokens - matched_tokens)
-                print(f"[dbg][ocr] rejecting fuzzy hit; missing tokens {missing}")
-        else:
-            last_ocr_match_center = center
-            last_detection_type = "ocr"
-            print(f"[*] Fuzzy match {ratio:.1%} for '{target_norm}' ~ '{matched_text}' at {center}")
-            return True
-    best_ratio = _best_fuzzy_ratio(lines, target_norm)
-    try:
-        _dump_ocr_debug(results, region, target_norm)
-    except Exception:
-        pass
-    print(f"[!] Fuzzy OCR below threshold ({best_ratio:.1%}) for '{target_norm}'")
-    return False
 
 def move_mouse_hardware(x, y):
     print(f"[*] Moving mouse to ({x}, {y})")
@@ -687,24 +405,19 @@ def _cycle_target_selection(keymap):
     system_actions.wait_sec(1.5)
 
 def _pick_target_via_ocr(candidates, limits, kills, region):
+    """Use OCRSystem to find a target from candidates that hasn't met its kill quota."""
     for name in candidates:
-        found = perform_ocr_and_find_text(name, region)
-        
-        if found:
-            # Check if this was a partial match of a longer name
-            # e.g. if looking for "Quiveron" but found "Quiveron guard", don't count it
-            # as "Quiveron" until we've seen a defeat message
-            if kills[name] >= limits[name]:
-                print(f"[i] Already met quota for {name}, skipping.")
-                continue
+        if kills[name] >= limits[name]:
+            continue
             
+        if ocr_system.find_text(name, region):
             return name
     return None
 
 def _move_mouse_to_last_detection():
-    # Update InputManager's tracking variables
-    InputManager.last_detection_type = last_detection_type
-    InputManager.last_ocr_match_center = last_ocr_match_center
+    """Move mouse to last detected position from OCRSystem or image search."""
+    InputManager.last_detection_type = ocr_system.last_detection_type
+    InputManager.last_ocr_match_center = ocr_system.last_ocr_match_center
     InputManager.last_img_match_center = last_img_match_center
     return InputManager.move_to_last_detection()
 
@@ -1006,16 +719,13 @@ def parse_vector3_string(s: str):
 
 def read_player_coords_from_screen(region=VNAV_COORDS_REGION):
     try:
-        img = ImageGrab.grab(bbox=region)
-        text = pytesseract.image_to_string(
-            img,
-            lang="eng+ffxiv",
-            config="--oem 1 --psm 7 -c tessedit_char_whitelist=0123456789.-, "
-        )
-        text_clean = text.replace("\n", " ").replace("  ", " ").strip()
-        return parse_vector3_string(text_clean)
+        result = ocr_system.read_target_name(region)  # Reusing target name method as it's configurable
+        if result:
+            text_clean = result.replace("\n", " ").replace("  ", " ").strip()
+            return parse_vector3_string(text_clean)
     except Exception:
         return None
+    return None
 
 def vec3_distance(a, b):
     ax, ay, az = a
@@ -1137,9 +847,8 @@ def wait_until_near(coord_str: str, timeout_ms: int, tolerance: float) -> bool:
     return False
 
 def execute_one_step(step, keymap):
-    # These are set/used by your existing OCR/IMG helpers and mouse movers.
-    global last_ocr_text, last_ocr_region, last_img_template
-    global last_detection_type, last_ocr_match_center, last_img_match_center
+    # Track last used image template
+    global last_img_template
     
     if not isinstance(step, dict):
         return False
@@ -1166,29 +875,30 @@ def execute_one_step(step, keymap):
     if "region" in step:
         try:
             rv = step["region"]
+            region = None
             if isinstance(rv, (list, tuple)) and len(rv) == 4:
-                last_ocr_region = tuple(int(x) for x in rv)
+                region = tuple(int(x) for x in rv)
             elif isinstance(rv, dict):
                 # accept l/t/r/b or L/T/R/B
                 def _g(d, k): 
                     return d.get(k) if k in d else d.get(k.upper())
-                last_ocr_region = (int(_g(rv, "l")), int(_g(rv, "t")), int(_g(rv, "r")), int(_g(rv, "b")))
+                region = (int(_g(rv, "l")), int(_g(rv, "t")), int(_g(rv, "r")), int(_g(rv, "b")))
             else:
                 # string "L,T,R,B" with optional whitespace
                 parts = re.split(r"\s*,\s*", str(rv).strip())
                 if len(parts) != 4:
                     raise ValueError("expected 4 comma-separated integers")
-                last_ocr_region = tuple(int(p) for p in parts)
-            print(f"[*] OCR region set to {last_ocr_region}")
+                region = tuple(int(p) for p in parts)
+            # Store region in OCRSystem for later use
+            ocr_system.last_ocr_region = region
+            print(f"[*] OCR region set to {region}")
         except Exception as e:
             print(f"[!] Bad region value: {step['region']} ({e})")
         return True
 
     if "ocr" in step:
-        last_ocr_text = step["ocr"]
-        # Optional immediate probe (keeps previous behavior where an OCR step often probed)
-        perform_ocr_and_find_text(last_ocr_text, last_ocr_region)
-        last_detection_type = "ocr"
+        target_text = step["ocr"]
+        ocr_system.find_text(target_text, ocr_system.last_ocr_region)
         return True
 
     if "img_search" in step:
@@ -1203,9 +913,11 @@ def execute_one_step(step, keymap):
             x, y = int(mv[0]), int(mv[1])
             move_mouse_hardware(x, y)
         elif mv == "move_to":
-            if last_detection_type == "ocr" and last_ocr_match_center:
-                move_mouse_hardware(*last_ocr_match_center)
-            elif last_detection_type == "img" and last_img_match_center:
+            # Check OCRSystem first
+            if ocr_system.last_detection_type == "ocr" and ocr_system.last_ocr_match_center:
+                move_mouse_hardware(*ocr_system.last_ocr_match_center)
+            # Fall back to image match if available
+            elif last_img_match_center:
                 move_mouse_hardware(*last_img_match_center)
             else:
                 print("[!] mouse_move(move_to): no detection center available.")
@@ -1287,10 +999,10 @@ def execute_one_step(step, keymap):
 
             # 2) perform the check
             if mode == "ocr":
-                if not last_ocr_text:
+                if not ocr_system.last_ocr_text:
                     print("[!] await(ocr): no prior 'ocr' text set.")
                     break
-                found = perform_ocr_and_find_text(last_ocr_text, last_ocr_region)
+                found = ocr_system.find_text(ocr_system.last_ocr_text, ocr_system.last_ocr_region)
             elif mode == "img":
                 if not last_img_template:
                     print("[!] await(img): no prior 'img_search' template set.")
@@ -1433,65 +1145,7 @@ def _await_combat_completion_via_act(target_name: str, timeout_sec: float = 90, 
         print(f"[!] Error monitoring ACT logs: {e}")
         return False, None
 
-# --- OCR Debugging chat helpers ---
-def _norm_token_generic(s: str) -> str:
-    s = (s or "").lower()
-    s = s.replace("â€™", "'").replace("â€˜", "'")
-    s = re.sub(r"(?:^[^\w]+)|(?:[^\w]+$)", "", s)  # trim punctuation at ends
-    return s
 
-def _group_ocr_lines(results, region=None):
-    """Group OCR tokens into visual lines; include raw/norm text, boxes, centers, and token lists."""
-    lines = {}
-    for i, txt in enumerate(results["text"]):
-        if not txt or not txt.strip():
-            continue
-        key = (results["block_num"][i], results["par_num"][i], results["line_num"][i])
-        lines.setdefault(key, {"texts": [], "boxes": []})
-        lines[key]["texts"].append(txt)
-        x, y, w, h = results["left"][i], results["top"][i], results["width"][i], results["height"][i]
-        if region:
-            x += region[0]; y += region[1]
-        lines[key]["boxes"].append((x, y, w, h))
-
-    out = []
-    for info in lines.values():
-        tokens = list(info["texts"])
-        norm_tokens = [_norm_token_generic(t) for t in tokens]
-        norm_tokens = [t for t in norm_tokens if t]
-        raw = " ".join(tokens).strip()
-        norm = " ".join(norm_tokens)
-        xs = [b[0] for b in info["boxes"]]; ys = [b[1] for b in info["boxes"]]
-        xe = [b[0] + b[2] for b in info["boxes"]]; ye = [b[1] + b[3] for b in info["boxes"]]
-        x0, y0, x1, y1 = min(xs), min(ys), max(xe), max(ye)
-        cx, cy = (x0 + x1) // 2, (y0 + y1) // 2
-        entry = {
-            "raw": raw,
-            "norm": norm,
-            "bbox": (x0, y0, x1, y1),
-            "center": (cx, cy),
-            "tokens": tokens,
-            "boxes": info["boxes"],
-            "norm_tokens": norm_tokens
-        }
-        out.append(entry)
-    return out
-
-def _dump_ocr_debug(results, region=None, target=None):
-    """Print a compact dump of OCR lines to help debug misses."""
-    if not OCR_DEBUG_DUMP:
-        return
-    try:
-        lines = _group_ocr_lines(results, region)
-        hdr = f"[dbg][ocr] lines={len(lines)}"
-        if target: hdr += f" (target='{target}')"
-        print(hdr)
-        for i, ln in enumerate(lines[:OCR_DEBUG_MAX_LINES], 1):
-            print(f"  {i:>2}. raw='{ln['raw']}' | norm='{ln['norm']}' | center={ln['center']} bbox={ln['bbox']}")
-        if len(lines) > OCR_DEBUG_MAX_LINES:
-            print(f"  â€¦ {len(lines) - OCR_DEBUG_MAX_LINES} more line(s) omitted")
-    except Exception as e:
-        print(f"[dbg][ocr] dump failed: {e}")
 
 # === Main Logic ===
 single_run_mode = False

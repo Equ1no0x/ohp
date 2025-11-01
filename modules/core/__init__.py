@@ -8,5 +8,6 @@ from .input_manager import InputManager
 from .game_actions import GameActions
 from .macro_manager import MacroManager
 from .progress_manager import ProgressManager
+from .ocr_system import OCRSystem
 
-__all__ = ['AssetManager', 'SystemActions', 'InputManager', 'GameActions', 'MacroManager', 'ProgressManager']
+__all__ = ['AssetManager', 'SystemActions', 'InputManager', 'GameActions', 'MacroManager', 'ProgressManager', 'OCRSystem']
