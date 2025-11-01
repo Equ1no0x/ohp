@@ -713,13 +713,14 @@ def _open_with_mouse():
 
 def _is_still_in_combat(act_log_watcher, timeout=5.0):
     try:
+        # Read all recent messages within the timeout window
         with act_log_watcher._combat_log.open("r", encoding="utf-8") as f:
-            lines = f.readlines()[-20:]  # Get last 20 messages
+            lines = f.readlines()
             
         if not lines:
             return False
 
-        # Parse last line's timestamp to get timezone info
+        # Get timezone info from last line
         latest_ts = None
         for line in reversed(lines):
             try:
@@ -736,22 +737,26 @@ def _is_still_in_combat(act_log_watcher, timeout=5.0):
         current_time = datetime.now(latest_ts.tzinfo)
         cutoff_time = current_time - timedelta(seconds=timeout)
         
-        for line in reversed(lines):  # Start with most recent
+        # Look for combat messages within the timeout window
+        combat_found = False
+        for line in reversed(lines):
             try:
                 timestamp, message = line.split(" | ", 1)
-                # Parse actual timestamp for accurate comparison
                 ts = datetime.fromisoformat(timestamp.strip())
                 
-                # Skip messages older than our cutoff
+                # Only check messages within our time window
                 if ts < cutoff_time:
-                    continue
+                    break  # No need to check older messages
                     
                 msg_lower = message.lower().strip()
-                if any(x in msg_lower for x in ["hits you for", "you hit"]):
-                    return True
+                if any(x in msg_lower for x in ["hits you for", "you hit", "defeats", "defeat the"]):
+                    combat_found = True
+                    break
             except Exception as e:
                 print(f"[DEBUG] Error parsing combat line: {e}")
                 continue
+                
+        return combat_found
                 
         return False
     except Exception as e:
@@ -762,11 +767,19 @@ def _wait_for_combat_start(act_log_watcher, start_wait=5.0):
     """Wait up to start_wait seconds for combat to begin."""
     print("[*] Waiting for combat to begin...")
     combat_wait_start = time.time()
+    combat_detected = False
+    
     while time.time() - combat_wait_start < start_wait:
         if _is_still_in_combat(act_log_watcher):
-            print("[*] Combat detected, monitoring for defeats...")
+            if not combat_detected:
+                print("[*] Combat detected, monitoring for defeats...")
+                combat_detected = True
             return True
+        # Add small delay to prevent excessive CPU usage
         time.sleep(0.1)
+    
+    if not combat_detected:
+        print("[DEBUG] No combat detected within start_wait period")
     return False
 
 def _update_kill_counts(defeated_target, target, valid_targets, kills, limits):
@@ -1577,19 +1590,29 @@ current_quest_key = None
 result = progress_manager.resume_from_current()
 if result:
     current_file, current_step = result
-    current_quest_key = progress_manager._quest_key_for_path(current_file)
 
 # 2) Otherwise, scan for first incomplete quest
 if not current_file:
+    # With a clean progress.json, this should give us the first quest
     result = progress_manager.find_next_incomplete_quest()
     if result:
         current_file, current_step = result
-        current_quest_key = progress_manager._quest_key_for_path(current_file)
+    else:
+        # If no incomplete quest found, take the first quest from manifest
+        if manifest_list and isinstance(manifest_list[0], dict):
+            first_quest = manifest_list[0].get("quest", "").strip()
+            if first_quest:
+                current_file = resolve_file_path(f"{first_quest}.json") or resolve_file_path(first_quest)
+                current_step = 1
+                print(f"[+] Starting with first quest: {first_quest}")
 
-# 3) Nothing to do if all quests are completed
+# 3) Nothing to do if we couldn't find any quest to run
 if not current_file:
-    print("[+] All quests in manifest appear completed for this job.")
-    raise SystemExit(0)
+    print("[!] Could not find any quests to run. Check your manifest_list.")
+    raise SystemExit(1)
+
+# Set the current quest key after we're sure we have a valid file
+current_quest_key = progress_manager._quest_key_for_path(current_file)
 
 # Set current quest in progress manager
 progress_manager.set_current_quest(current_file, current_step)
@@ -1960,13 +1983,8 @@ while True:
             # If target is a number, it's a quest ID - look up by quest ID format in files.json 
             if isinstance(target, (int, str)) and str(target).strip().isdigit():
                 quest_id = str(target).strip()
-                # Look for files starting with the quest ID (like "253_way_of_the_gladiator.json")
-                _load_asset_indices()
-                target_file = next(
-                    (_assets_fullpath(path) for name, path in ASSET_FILE_INDEX.items() 
-                     if name.startswith(f"{quest_id}_")),
-                    None
-                )
+                # Try to resolve the quest file by ID
+                target_file = asset_manager.resolve_quest_by_id(quest_id)
                 if not target_file:
                     print(f"[!] GOTO target not found: Quest ID {quest_id}")
                     continue

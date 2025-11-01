@@ -57,7 +57,8 @@
 		{ "interaction_type": ["attune_aethernet_shard"] }
 	],
 	"10": [
-		{ "map": "uldah", "location": "chamber_of_rule_as" },
+		{ "comment": "Attune Chamber of Rule Aethernet Shard" },
+		{ "vnav": ["3.877 29.999 -24.378", 60000, 10] },
 		{ "interaction_type": ["attune_aethernet_shard"] }
 	],
 	"11": [

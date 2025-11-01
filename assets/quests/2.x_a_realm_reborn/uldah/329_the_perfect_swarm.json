@@ -4,7 +4,7 @@
 		{ "interaction_type": ["npc_interact", {"name": "Drunken Stag"}] }
 	],
 	"2": [
-		{ "vnav": ["174.368 49.626 -140.481", -1, 2.2] },
+		{ "vnav": ["174.368 49.626 -140.481", -1, 15] },
 		{
 			"combat": {
 				"region": "750, 31, 1190, 52",
