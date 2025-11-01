@@ -1402,7 +1402,7 @@ def _await_combat_completion_via_act(target_name: str, timeout_sec: float = 90, 
 def _norm_token_generic(s: str) -> str:
     s = (s or "").lower()
     s = s.replace("â€™", "'").replace("â€˜", "'")
-    s = re.sub(r"^[^\w]+|[^\w]+$", "", s)  # trim punctuation at ends
+    s = re.sub(r"(?:^[^\w]+)|(?:[^\w]+$)", "", s)  # trim punctuation at ends
     return s
 
 def _group_ocr_lines(results, region=None):
